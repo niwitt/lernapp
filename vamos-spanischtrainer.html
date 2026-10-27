@@ -121,6 +121,7 @@ h3 { margin:0 0 6px; }
 .bubble .es { font-weight:600; }
 .bubble .de { font-size:.8rem; opacity:.85; margin-top:3px; }
 select { font:inherit; padding:8px 12px; border-radius:10px; border:1px solid var(--linie); background:var(--card); color:var(--text); max-width:100%; }
+input[type="text"], input[type="search"] { font:inherit; padding:8px 12px; border-radius:10px; border:1px solid var(--linie); background:var(--card); color:var(--text); max-width:100%; }
 .fav-zeile { display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; border-bottom:1px solid var(--linie); padding:7px 0; }
 .fav-zeile .es { font-weight:600; }
 @keyframes rein { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)} }
@@ -189,7 +190,7 @@ var STD = {
   version: 1, punkte: 0, serie: 0, besteSerie: 0,
   streak: { a: 0, b: 0, d: null },
   bestanden: {}, gelernt: {}, favoriten: [], abzeichen: [], quiz: {},
-  modus: 'auto', stumm: false, richtung: 'mix'
+  modus: 'auto', stumm: false, richtung: 'mix', bkf: { s: 'alle', z: 'alle' }
 };
 function frischerStand() { return JSON.parse(JSON.stringify(STD)); }
 var S = frischerStand();
@@ -223,6 +224,13 @@ function esc(t) {
   });
 }
 function haupt() { return document.getElementById('haupt'); }
+/* Such-Normalisierung: akzent-/zeichensymbol-unempfindlich (¿qué tal? → que tal) */
+function normiere(t) {
+  return String(t).toLowerCase()
+    .replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i')
+    .replace(/ó/g, 'o').replace(/ú/g, 'u').replace(/ü/g, 'u').replace(/ñ/g, 'n')
+    .replace(/[¿?¡!.,;:()']/g, '');
+}
 
 /* ================== Sprachausgabe (immer die richtige Lösung) ================== */
 /* sprich(text) – spricht. sprich(text, dann) – spricht und ruft dann() auf,
@@ -487,13 +495,19 @@ function ansichtModul(h, n) {
   html += '<button class="btn" data-nav2="quiz" data-level="' + n + '">📝 Abschlussquiz</button>';
   html += '<button class="btn" data-nav2="start">← Zurück</button>';
   html += '</div>';
-  html += '<p class="muted" style="font-size:.85rem">Tippe auf ein Wort für Übersetzung, Länder-Varianten und Aussprache. Durchgestrichen = gelernt.</p>';
-  html += '<div class="wortliste">';
+  html += '<p class="muted" style="font-size:.85rem">Deutsch und Spanisch im Blick: 🔊 spricht das Wort, ⭐/☆ setzt einen Favoriten. Tippe auf das Wort selbst für Länder-Varianten und Details. Durchgestrichen = gelernt.</p>';
   var i;
   for (i = 0; i < ws.length; i++) {
-    html += '<button class="wort' + (S.gelernt[ws[i].id] ? ' gelernt' : '') + '" data-wort="' + ws[i].id + '">' + esc(ws[i].de) + '</button> ';
+    var w = ws[i];
+    var fav = S.favoriten.indexOf(w.id) >= 0;
+    html += '<div class="fav-zeile">';
+    html += '<button class="wort' + (S.gelernt[w.id] ? ' gelernt' : '') + '" data-wort="' + w.id + '">' + esc(w.de) + '</button>';
+    html += '<span class="es">' + esc(w.es) + '</span>';
+    if (w.land) html += '<span class="muted" style="font-size:.8rem">' + landZeichen(w.land) + '</span>';
+    html += '<button class="btn geist" data-sprich="' + w.id + '" title="Aussprechen">🔊</button>';
+    html += '<button class="btn geist" data-fav="' + w.id + '" title="Favorit setzen/entfernen">' + (fav ? '⭐' : '☆') + '</button>';
+    html += '</div>';
   }
-  html += '</div>';
   h.innerHTML = html;
 }
 
@@ -566,6 +580,7 @@ function ansichtFavoriten(h) {
       html += '<span class="es">' + esc(w.es) + '</span>';
       if (w.land) html += '<span class="muted" style="font-size:.8rem">' + landZeichen(w.land) + '</span>';
       if (S.gelernt[w.id]) html += '<span class="muted" style="font-size:.8rem">✓ gelernt</span>';
+      html += '<button class="btn geist" data-sprich="' + w.id + '" title="Aussprechen">🔊</button>';
       html += '<button class="btn geist" data-unfav="' + w.id + '" title="Favorit entfernen">⊖</button>';
       html += '</div>';
     }
@@ -593,6 +608,13 @@ function stapelStarten(arg) {
     }
     stapel = { modus: 'wiederholung', karten: mische(karten), i: 0, gedreht: false };
     if (karten.length === 0) toast('Gerade ist nichts fällig – stark! 💪');
+  } else if (arg && arg.modus === 'suche' && arg.ids && arg.ids.length) {
+    var sk = [], s2;
+    for (s2 = 0; s2 < arg.ids.length; s2++) {
+      var sw = wortById(arg.ids[s2]);
+      if (sw) sk.push({ w: sw, richt: richtungFuer() });
+    }
+    stapel = { modus: 'suche', karten: sk, i: 0, gedreht: false };
   } else {
     var lvl = (arg && arg.level) ? arg.level : aktuellesLevel();
     var ws = woerterFuer(lvl);
@@ -632,6 +654,14 @@ function ansichtStapelWahl(h) {
     html += '<div class="statistik-zeile"><button class="btn geist" id="stapelWeiterLaufend">↩ Zurück zum laufenden Stapel (' + stapel.karten.length + ' Karten)</button></div>';
   }
   html += '</section>';
+  html += '<section class="frage-box" style="margin-top:10px"><h3>🔍 Vokabelsuche (alle Module)</h3>';
+  html += '<p class="muted" style="font-size:.85rem">Durchsucht Deutsch, Spanisch und Länder-Slang (chamaco, casero, yapa …) über alle 30 Module – auch gelernte Wörter, unabhängig vom gewählten Modul.</p>';
+  html += '<div class="statistik-zeile" style="align-items:center">';
+  html += '<input type="text" id="sucheFeld" placeholder="z. B. Bus, camioneta oder chamaco" style="flex:1;min-width:180px">';
+  html += '<button class="btn primary" id="sucheLos">🔍 Suchen</button>';
+  html += '</div>';
+  html += '<div id="sucheErgebnis" style="margin-top:12px"></div>';
+  html += '</section>';
   html += '<section class="frage-box" style="margin-top:10px"><h3>⌨️ Tastatur im Stapel</h3>';
   html += '<p class="muted" style="font-size:.85rem">← → blättern · ▲ ▼ Karte umdrehen · <strong>Leertaste</strong> vorlesen (nur auf der spanischen Seite) · <strong>⏎ Eingabe</strong> als gelernt markieren / gewusst · <strong>+</strong> Favorit · <strong>−</strong> Stern entfernen</p></section>';
   h.innerHTML = html;
@@ -641,6 +671,57 @@ function ansichtStapelWahl(h) {
   });
   var zb = $('#stapelWeiterLaufend');
   if (zb) zb.addEventListener('click', function () { zeige('stapel'); });
+  /* Vokabelsuche über alle Module (Deutsch, Spanisch, Länder-Slang) */
+  function sucheAusfuehren() {
+    var roh = $('#sucheFeld').value.trim();
+    var q = normiere(roh);
+    var box = $('#sucheErgebnis');
+    if (!q) {
+      box.innerHTML = '<span class="muted" style="font-size:.85rem">Bitte einen Suchbegriff eingeben.</span>';
+      return;
+    }
+    var treffer = [], i;
+    for (i = 0; i < VOCAB.woerter.length; i++) {
+      var w = VOCAB.woerter[i];
+      var passt = normiere(w.de).indexOf(q) >= 0 || normiere(w.es).indexOf(q) >= 0;
+      if (!passt && w.la) {
+        for (var lk in w.la) {
+          if (normiere(w.la[lk]).indexOf(q) >= 0) { passt = true; break; }
+        }
+      }
+      if (!passt && w.land && normiere(w.land).indexOf(q) >= 0) passt = true;
+      if (passt) treffer.push(w);
+    }
+    var erg = '';
+    if (treffer.length === 0) {
+      erg = '<p class="muted">Keine Treffer für „' + esc(roh) + '“.</p>';
+    } else {
+      erg += '<p class="muted" style="font-size:.85rem">' + treffer.length + ' Treffer</p>';
+      erg += '<div class="statistik-zeile" style="margin-bottom:8px"><button class="btn" id="sucheStapel">▶ Treffer als Stapel üben (' + treffer.length + ' Karten)</button></div>';
+      var t2;
+      for (t2 = 0; t2 < treffer.length; t2++) {
+        var w2 = treffer[t2];
+        var fav = S.favoriten.indexOf(w2.id) >= 0;
+        erg += '<div class="fav-zeile">';
+        erg += '<button class="wort' + (S.gelernt[w2.id] ? ' gelernt' : '') + '" data-wort="' + w2.id + '">' + esc(w2.de) + '</button>';
+        erg += '<span class="es">' + esc(w2.es) + '</span>';
+        if (w2.land) erg += '<span class="muted" style="font-size:.8rem">' + landZeichen(w2.land) + '</span>';
+        erg += '<button class="btn geist" data-sprich="' + w2.id + '" title="Aussprechen">🔊</button>';
+        erg += '<button class="btn geist" data-fav="' + w2.id + '" title="Favorit setzen/entfernen">' + (fav ? '⭐' : '☆') + '</button>';
+        erg += '</div>';
+      }
+    }
+    box.innerHTML = erg;
+    var ss = $('#sucheStapel');
+    if (ss) ss.addEventListener('click', function () {
+      var ids = treffer.map(function (tw) { return tw.id; });
+      zeige('stapel', { modus: 'suche', ids: ids });
+    });
+  }
+  $('#sucheLos').addEventListener('click', sucheAusfuehren);
+  $('#sucheFeld').addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); sucheAusfuehren(); }
+  });
 }
 function ansichtStapel(h, arg) {
   if (arg) stapelStarten(arg);
@@ -651,7 +732,9 @@ function ansichtStapel(h, arg) {
     html += '<h3>' + (stapel.modus === 'wiederholung' ? '🔁 Alles wiederholt!' : '🎴 Stapel geschafft!') + '</h3>';
     html += '<p class="muted">' + (stapel.modus === 'wiederholung'
       ? 'Keine Karten mehr fällig. Weiter geht es im Level-Stapel oder mit dem Quiz.'
-      : 'Du hast alle Wörter dieses Levels als gelernt markiert. Zeit fürs Abschlussquiz!') + '</p>';
+      : (stapel.modus === 'suche'
+        ? 'Alle Suchtreffer bearbeitet – starte eine neue Suche oder lerne im Level-Stapel weiter.'
+        : 'Du hast alle Wörter dieses Levels als gelernt markiert. Zeit fürs Abschlussquiz!')) + '</p>';
     html += '<div class="statistik-zeile">';
     if (stapel.modus === 'level') html += '<button class="btn primary" data-nav2="quiz" data-level="' + stapel.level + '">📝 Abschlussquiz starten</button>';
     html += '<button class="btn" data-nav2="stapelwahl">📚 Andere Lektion wählen</button>';
@@ -665,7 +748,7 @@ function ansichtStapel(h, arg) {
   var vorn = k.richt === 0 ? k.w.de : k.w.es;
   var hinten = k.richt === 0 ? k.w.es : k.w.de;
   html += '<div class="stapel-wrap">';
-  html += '<p class="muted" style="font-size:.85rem">' + (stapel.modus === 'wiederholung' ? '🔁 Wiederholungen' : '🎴 Level ' + stapel.level + ': ' + esc(levelName(stapel.level))) + ' · Karte ' + (stapel.i + 1) + '/' + stapel.karten.length;
+  html += '<p class="muted" style="font-size:.85rem">' + (stapel.modus === 'wiederholung' ? '🔁 Wiederholungen' : (stapel.modus === 'suche' ? '🔍 Suchtreffer' : '🎴 Level ' + stapel.level + ': ' + esc(levelName(stapel.level)))) + ' · Karte ' + (stapel.i + 1) + '/' + stapel.karten.length;
   html += ' · <button class="btn" id="stapelRichtung" style="font-size:.78rem;padding:2px 10px" title="Anzeige: Deutsch zuerst / Spanisch zuerst / gemischt">' + richtungLabel() + '</button>';
   html += ' <button class="btn" id="stapelLektion" style="font-size:.78rem;padding:2px 10px" title="Lektion wechseln">📚 Lektion</button></p>';
   html += '<div class="karte-aussen"><div class="karte' + (stapel.gedreht ? ' gedreht' : '') + '" id="stapelKarte">';
@@ -932,7 +1015,7 @@ function bkSaetze() {
   for (i = 0; i < DIALOGS.saetze.length; i++) alle.push(DIALOGS.saetze[i]);
   for (i = 0; i < DIALOGS.dialoge.length; i++) {
     var d = DIALOGS.dialoge[i];
-    for (k = 0; k < d.wechsel.length; k++) alle.push({ de: d.wechsel[k].de, es: d.wechsel[k].es });
+    for (k = 0; k < d.wechsel.length; k++) alle.push({ de: d.wechsel[k].de, es: d.wechsel[k].es, szene: d.szene });
   }
   var out = [];
   for (i = 0; i < alle.length; i++) {
@@ -948,9 +1031,34 @@ function bkSaetze() {
 }
 function ansichtBaukasten(h) {
   if (!bk || bk.i >= bk.saetze.length) {
-    bk = { saetze: mische(bkSaetze()).slice(0, 10), i: 0, geloest: 0, platziert: [] };
+    var pool = bkGefiltert();
+    if (pool.length === 0) {
+      pool = bkSaetze();
+      toast('Für diese Auswahl gibt es keine passenden Sätze – alle Sätze werden genutzt.');
+    }
+    bk = { saetze: mische(pool).slice(0, 10), i: 0, geloest: 0, platziert: [], gesperrt: false };
   }
   bkZeichnen(h);
+}
+function bkSzenenListe() {
+  var alle = bkSaetze(), out = [], i;
+  for (i = 0; i < alle.length; i++) {
+    if (alle[i].szene && out.indexOf(alle[i].szene) < 0) out.push(alle[i].szene);
+  }
+  return out;
+}
+function bkGefiltert() {
+  var alle = bkSaetze(), out = [], i;
+  for (i = 0; i < alle.length; i++) {
+    var t = alle[i];
+    var n = t.es.split(' ').length;
+    if (S.bkf.s === 'leicht' && n > 5) continue;
+    if (S.bkf.s === 'mittel' && (n < 6 || n > 8)) continue;
+    if (S.bkf.s === 'schwer' && n < 9) continue;
+    if (S.bkf.z !== 'alle' && t.szene !== S.bkf.z) continue;
+    out.push(t);
+  }
+  return out;
 }
 function bkZeichnen(h) {
   if (bk.i >= bk.saetze.length) {
@@ -968,6 +1076,24 @@ function bkZeichnen(h) {
   bk.platziert = [];
   var html = '';
   html += '<h2>🧩 Wort-Baukasten</h2>';
+  html += '<div class="statistik-zeile" style="margin:0 0 10px;align-items:center;flex-wrap:wrap">';
+  html += '<label class="muted" style="font-size:.8rem">Schwierigkeit:</label>';
+  html += '<select id="bkSchwierigkeit" style="padding:4px 8px">';
+  html += '<option value="alle"' + (S.bkf.s === 'alle' ? ' selected' : '') + '>Alle</option>';
+  html += '<option value="leicht"' + (S.bkf.s === 'leicht' ? ' selected' : '') + '>Leicht (3–5 Wörter)</option>';
+  html += '<option value="mittel"' + (S.bkf.s === 'mittel' ? ' selected' : '') + '>Mittel (6–8)</option>';
+  html += '<option value="schwer"' + (S.bkf.s === 'schwer' ? ' selected' : '') + '>Schwer (9–10)</option>';
+  html += '</select>';
+  html += '<label class="muted" style="font-size:.8rem">Szene:</label>';
+  html += '<select id="bkSzene" style="padding:4px 8px">';
+  html += '<option value="alle"' + (S.bkf.z === 'alle' ? ' selected' : '') + '>Alle Szenen</option>';
+  var szn = bkSzenenListe(), zi;
+  for (zi = 0; zi < szn.length; zi++) {
+    html += '<option value="' + esc(szn[zi]) + '"' + (S.bkf.z === szn[zi] ? ' selected' : '') + '>' + esc(szn[zi]) + '</option>';
+  }
+  html += '</select>';
+  html += '<button class="btn" id="bkNeueRunde" title="Neue Runde mit dieser Auswahl">🔄 Neue Runde</button>';
+  html += '</div>';
   html += '<section class="frage-box">';
   html += '<div class="muted" style="font-size:.85rem">Satz ' + (bk.i + 1) + '/' + bk.saetze.length + ' · Baue den spanischen Satz</div>';
   html += '<div class="begriff">🇩🇪 ' + esc(t.de) + '</div>';
@@ -996,6 +1122,7 @@ function bkZeichnen(h) {
   var kn = document.querySelectorAll('#bkPool .badge-wort'), k;
   for (k = 0; k < kn.length; k++) {
     kn[k].addEventListener('click', function (ev) {
+      if (bk.gesperrt) return;
       var b = ev.currentTarget;
       var o = Number(b.getAttribute('data-order'));
       bk.platziert.push({ i: o, txt: b.textContent });
@@ -1005,17 +1132,27 @@ function bkZeichnen(h) {
   }
   $('#bkPruefen').addEventListener('click', bkPruefen);
   $('#bkLeeren').addEventListener('click', bkLeeren);
+  $('#bkSchwierigkeit').addEventListener('change', function () {
+    S.bkf.s = this.value; speichern();
+    bk = null; zeige('baukasten');
+  });
+  $('#bkSzene').addEventListener('change', function () {
+    S.bkf.z = this.value; speichern();
+    bk = null; zeige('baukasten');
+  });
+  $('#bkNeueRunde').addEventListener('click', function () { bk = null; zeige('baukasten'); });
   $('#bkLoesung').addEventListener('click', function () {
-    bkLeeren();
-    var alle = document.querySelectorAll('#bkPool .badge-wort'), reihen = [];
-    var j, q;
-    for (j = 0; j < alle.length; j++) reihen.push(alle[j]);
-    reihen.sort(function (a, b) { return Number(a.getAttribute('data-order')) - Number(b.getAttribute('data-order')); });
-    for (q = 0; q < reihen.length; q++) reihen[q].click();
+    if (bk.gesperrt) return;
     falsch();
-    $('#bkRueck').innerHTML = '<div class="muted" style="font-size:.9rem">💡 ' + esc(t.de) + ' = <strong>' + esc(t.es) + '</strong></div>';
-    setTimeout(function () { sprich(t.es); }, 400);
-    setTimeout(function () { bk.i++; zeige('baukasten'); }, 2600);
+    bk.platziert = teile.map(function (txt, ix) { return { i: ix, txt: txt }; });
+    bk.gesperrt = true;
+    bkMalen();
+    sprich(t.es);
+    $('#bkRueck').innerHTML = '<div class="muted" style="font-size:.9rem">💡 Korrekt: <strong>' + esc(t.es) + '</strong></div>'
+      + '<div class="statistik-zeile" style="margin-top:8px"><button class="btn primary" id="bkWeiter">➡ Weiter zum nächsten Satz</button></div>';
+    $('#bkWeiter').addEventListener('click', function () {
+      bk.i++; bk.gesperrt = false; zeige('baukasten');
+    });
   });
   bkMalen();
 }
@@ -1031,6 +1168,7 @@ function bkMalen() {
   var kn = box.querySelectorAll('.badge-wort'), k;
   for (k = 0; k < kn.length; k++) {
     kn[k].addEventListener('click', function (ev) {
+      if (bk.gesperrt) return;
       var p = Number(ev.currentTarget.getAttribute('data-p'));
       var o = bk.platziert[p].i;
       bk.platziert.splice(p, 1);
@@ -1043,24 +1181,34 @@ function bkMalen() {
   }
 }
 function bkPruefen() {
+  if (bk.gesperrt) return;
   var t = bk.saetze[bk.i];
-  var ok = bk.platziert.length === t.es.split(' ').length;
+  var teile = t.es.split(' ');
+  var ok = bk.platziert.length === teile.length;
   var i;
   for (i = 0; i < bk.platziert.length && ok; i++) {
     if (bk.platziert[i].i !== i) ok = false;
   }
   var box = $('#bkAntwort');
+  bk.gesperrt = true;
   if (ok) {
     richtig();
+    bk.geloest++;
     sprich(t.es);
-    $('#bkRueck').innerHTML = '<div class="muted" style="font-size:.9rem;color:var(--ok)">✓ ¡Perfecto!</div>';
-    setTimeout(function () { bk.i++; bk.geloest++; zeige('baukasten'); }, 1000);
+    $('#bkRueck').innerHTML = '<div class="muted" style="font-size:.9rem;color:var(--ok)">✓ ¡Perfecto! <strong>' + esc(t.es) + '</strong></div>'
+      + '<div class="statistik-zeile" style="margin-top:8px"><button class="btn primary" id="bkWeiter">➡ Weiter zum nächsten Satz</button></div>';
   } else {
     falsch();
     box.classList.add('schutteln');
-    $('#bkRueck').innerHTML = '<div class="muted" style="font-size:.9rem;color:var(--bad)">Noch nicht – die Reihenfolge stimmt nicht ganz.</div>';
-    setTimeout(function () { box.classList.remove('schutteln'); }, 450);
+    setTimeout(function () { if (box) box.classList.remove('schutteln'); }, 450);
+    sprich(t.es);
+    $('#bkRueck').innerHTML = '<div class="muted" style="font-size:.9rem;color:var(--bad)">✗ Nicht ganz. Korrekt wäre:</div>'
+      + '<div class="begriff" style="font-size:1.15rem">' + esc(t.es) + '</div>'
+      + '<div class="statistik-zeile" style="margin-top:8px"><button class="btn primary" id="bkWeiter">➡ Weiter zum nächsten Satz</button></div>';
   }
+  $('#bkWeiter').addEventListener('click', function () {
+    bk.i++; bk.gesperrt = false; zeige('baukasten');
+  });
 }
 function bkLeeren() {
   bk.platziert = [];
@@ -1072,6 +1220,7 @@ function bkLeeren() {
 var dlg = null;
 function ansichtDialoge(h) {
   if (dlg && dlg.aktiv) { dlgZeichnen(h); return; }
+  dlg = null; /* beendeter Dialog wird beim Listenaufruf verworfen (stoppt auch laufendes Vorlesen) */
   var html = '<h2>💬 Interaktive Dialoge</h2>';
   html += '<p class="muted" style="font-size:.85rem">Dein Gegenüber beginnt – wähle ab der passenden Stelle die richtige Antwort aus vier Möglichkeiten. Falsche Versuche werden rot angezeigt, richtige Antworten werden vorgelesen. Die Übersetzung blendest du per Tipp auf eine Sprechblase ein, wenn du sie brauchst.</p>';
   var i, d;
@@ -1179,8 +1328,10 @@ function dlgAntwort(btn) {
     var bx = $('#chatBox');
     bx.insertAdjacentHTML('beforeend', bubbleHtml(t, 1));
     dlg.i++;
-    /* erst wenn die eigene Antwort zu Ende vorgelesen ist, kommt der nächste Satz */
-    sprich(t.es, function () { if (dlg && !dlg.fertig) dlgSchritt(); });
+    /* erst wenn die eigene Antwort zu Ende vorgelesen ist (+ ½ Sekunde Pause), kommt der nächste Satz */
+    sprich(t.es, function () {
+      setTimeout(function () { if (dlg && !dlg.fertig) dlgSchritt(); }, 500);
+    });
   } else {
     btn.classList.add('schlecht');
     btn.classList.add('schutteln');
@@ -1189,7 +1340,9 @@ function dlgAntwort(btn) {
   }
 }
 function dlgFertig() {
+  if (dlg.fertig) return;
   dlg.fertig = true;
+  dlg.aktiv = false;
   var key = 'dlg_' + dlg.idx;
   var alt = S.quiz[key];
   if (!alt || dlg.richtig > alt.max) S.quiz[key] = { max: dlg.richtig, punkte: dlg.richtig, am: heute() };
@@ -1201,19 +1354,32 @@ function dlgFertig() {
     S.punkte += bonus; speichern(); kopf();
     toast('🎁 Dialog fehlerfrei: +' + bonus + ' Punkte!');
   }
-  var h = haupt();
-  var idx = dlg.idx;
-  var html = '<div class="stapel-wrap"><div class="frage-box" style="margin-top:26px;text-align:center">';
+  /* Rückmelde-Box UNTER dem stehen bleibenden Chat */
+  var box = $('#dlgOpt');
+  var html = '<section class="frage-box" style="margin-top:12px;border-color:var(--ok)">';
   html += '<h3>' + dlg.d.flag + ' ' + (perfekt ? '🌟 Perfekt!' : 'Dialog beendet!') + '</h3>';
-  html += '<p>Du hast <strong>' + dlg.richtig + ' von ' + dlg.insgesamt + '</strong> Antworten ohne Fehler' + (perfekt ? '' : ' (bester Versuch wird gespeichert)') + '.</p>';
-  html += '<div class="statistik-zeile" style="justify-content:center">';
-  html += '<button class="btn primary" id="dlgNochmal">🔁 Nochmal</button>';
-  html += '<button class="btn" id="dlgAlle">💬 Alle Dialoge</button>';
-  html += '</div></div></div>';
-  dlg = null;
-  h.innerHTML = html;
+  html += '<p class="muted">Du hast <strong>' + dlg.richtig + ' von ' + dlg.insgesamt + '</strong> Antworten ohne Fehler. Lies den Dialog noch einmal in Ruhe durch oder lass ihn dir komplett vorlesen.</p>';
+  html += '<div class="statistik-zeile">';
+  html += '<button class="btn" id="dlgVorlesen">🔊 Dialog vorlesen</button>';
+  html += '<button class="btn" id="dlgNochmal">🔁 Nochmal</button>';
+  html += '<button class="btn primary" id="dlgWeiter">➡ Weiter zu allen Dialogen</button>';
+  html += '</div></section>';
+  box.innerHTML = html;
+  var idx = dlg.idx, d = dlg.d;
+  $('#dlgVorlesen').addEventListener('click', function () { dlgGanzVorlesen(d); });
   $('#dlgNochmal').addEventListener('click', function () { dlgStart(idx); });
-  $('#dlgAlle').addEventListener('click', function () { zeige('dialoge'); });
+  $('#dlgWeiter').addEventListener('click', function () { dlg = null; zeige('dialoge'); });
+}
+function dlgGanzVorlesen(d) {
+  var pos = 0;
+  var weiter = function () {
+    if (!dlg || dlg.d !== d || dlg.aktiv) return; /* neuer/laufender Dialog stoppt die Wiedergabe */
+    if (pos >= d.wechsel.length) return;
+    var t = d.wechsel[pos];
+    pos++;
+    sprich(t.es, weiter);
+  };
+  weiter();
 }
 /* ================== Einstellungen ================== */
 function ansichtEinstellungen(h) {
@@ -1295,11 +1461,22 @@ function download(name, text) {
 function init() {
   /* Klick-Delegation für dynamische Buttons */
   document.addEventListener('click', function (ev) {
-    var el = ev.target && ev.target.closest ? ev.target.closest('[data-nav],[data-nav2],[data-oeffnen],[data-wort],[data-dlg],[data-unfav]') : null;
+    var el = ev.target && ev.target.closest ? ev.target.closest('[data-nav],[data-nav2],[data-oeffnen],[data-wort],[data-dlg],[data-unfav],[data-sprich],[data-fav]') : null;
     if (!el) return;
     if (el.hasAttribute('disabled')) return;
     if (el.hasAttribute('data-nav')) {
       zeige(el.getAttribute('data-nav'));
+      return;
+    }
+    if (el.hasAttribute('data-sprich')) {
+      var sw2 = wortById(el.getAttribute('data-sprich'));
+      if (sw2) sprich(sw2.es);
+      return;
+    }
+    if (el.hasAttribute('data-fav')) {
+      var fid = el.getAttribute('data-fav');
+      favoritUmschalten(fid);
+      el.textContent = S.favoriten.indexOf(fid) >= 0 ? '⭐' : '☆';
       return;
     }
     if (el.hasAttribute('data-nav2')) {
