@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171d1b">
+<title>Tak – Lokales Spiel v9</title>
+<style>
+:root{--ink:#f4efe3;--muted:#b9b09f;--gold:#d5ad6a;--wood:#795034;--wood2:#a87346;--bg:#171d1b;--panel:#222a26;--line:#596256;--white:#f2ead6;--black:#292b29;--green:#8aab8c;--red:#c87861}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% 0%,#354039 0,#202923 44%,#151a18 100%);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #f0c97f;outline-offset:3px}
+.app{max-width:1480px;margin:0 auto;padding:20px 24px 36px}.topbar{display:flex;align-items:center;gap:18px;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:42px;height:42px;border:1px solid #b38b57;border-radius:12px;display:grid;place-items:center;color:#e4c18a;background:linear-gradient(145deg,#4d3927,#211d18);font-family:Georgia,serif;font-size:25px;box-shadow:inset 0 1px #ffffff26,0 5px 18px #0005}.brand h1{font-family:Georgia,serif;font-size:27px;letter-spacing:.13em;margin:0;font-weight:600}.brand small{display:block;color:var(--muted);font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin-top:2px}.toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.field-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}.field-label select{background:#27302b;color:var(--ink);border:1px solid #586257;padding:9px 30px 9px 10px;border-radius:9px}.btn{border:1px solid #687365;background:linear-gradient(#39463d,#29332d);color:var(--ink);border-radius:9px;padding:9px 14px;box-shadow:0 3px 9px #0003;transition:.15s ease}.btn:hover{filter:brightness(1.13);transform:translateY(-1px)}.btn.primary{background:linear-gradient(#b58a51,#8b673c);border-color:#d5b276;color:#211b14;font-weight:700}.btn:disabled{opacity:.42;cursor:not-allowed;transform:none;filter:none}
+.layout{display:grid;grid-template-columns:minmax(150px,210px) minmax(380px,1fr) minmax(150px,210px);gap:17px;align-items:start}.rail{display:flex;flex-direction:column;gap:12px;transition:order .2s ease}.rail.player-white{order:0}.rail.player-black{order:2}.board-column{order:1;min-width:0}.player-card,.panel{background:linear-gradient(145deg,#2a342e,#202722);border:1px solid #4c5a4e;border-radius:14px;padding:14px;box-shadow:0 12px 28px #0003,inset 0 1px #ffffff0b}.player-card{position:relative;overflow:hidden}.player-card.active{border-color:#d1ae73;box-shadow:0 0 0 1px #d1ae7338,0 10px 30px #0004}.player-card.active:before{content:"AM ZUG";position:absolute;top:0;right:0;background:#bd965b;color:#211b14;font-size:9px;letter-spacing:.1em;font-weight:800;padding:4px 8px;border-radius:0 0 0 8px}.player-head{display:flex;align-items:center;gap:9px;margin-bottom:12px}.player-disc{width:26px;height:26px;border-radius:50%;box-shadow:inset -3px -4px 7px #0005,inset 2px 2px 4px #fff5,0 2px 5px #0006;flex:none}.disc-white{background:radial-gradient(circle at 35% 28%,#fffef4,#e3d6b8 65%,#a99b7e)}.disc-black{background:radial-gradient(circle at 35% 28%,#77776d,#262a27 65%,#101311)}.player-name{font-family:Georgia,serif;font-size:18px}.reserve-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:10px 0 5px}.reserve-count{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #ffffff10;font-size:13px}.reserve-count:last-child{border-bottom:0}.reserve-count strong{font-variant-numeric:tabular-nums;font-size:16px;color:#f5dfb5}.reserve-count .mini{color:#aeb5aa;font-size:10px;margin-left:5px}.panel-title{font-family:Georgia,serif;font-size:17px;margin:0 0 10px}.hint{font-size:12px;line-height:1.45;color:#c6c3b8}.hint strong{color:#f1dfbb}.controls-panel{margin-top:12px}.stone-choice{display:flex;gap:7px;margin-top:8px}.choice{flex:1;min-height:60px;border:1px solid #586459;background:#27322b;color:var(--ink);border-radius:10px;padding:8px 5px;font-size:11px}.choice .swatch{display:block;width:29px;height:23px;margin:0 auto 5px;border-radius:5px;background:#e4d9bf;box-shadow:inset 0 -5px 0 #b5a789,0 2px 5px #0006;transform:skewY(-12deg)}.choice .swatch.wall{height:28px;width:23px;transform:skewY(-10deg);box-shadow:inset -4px 0 #96896e}.choice .swatch.cap{background:linear-gradient(135deg,#f8efda,#c9b58a);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%);height:24px}.choice.selected{border-color:#d5b174;background:#53432d;box-shadow:0 0 0 1px #d5b17455}.choice:disabled{opacity:.35;cursor:not-allowed}.tool-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.tool-row .btn{flex:1;padding:8px 9px;font-size:12px}.board-stage{position:relative;perspective:1400px;padding:10px 5px 16px;min-height:560px}.size-radio{display:flex;align-items:center;gap:8px;border:0;padding:0;margin:0;color:var(--muted);font-size:11px}.size-radio legend{float:left;margin-right:4px;text-transform:uppercase;letter-spacing:.08em}.size-radio label{display:flex;align-items:center;gap:3px;color:var(--ink);white-space:nowrap}.size-radio input{accent-color:#d5ad6a}.board-stage.angle-flat{min-height:0;padding-top:2px;padding-bottom:3px}.board-stage.angle-rotated{min-height:680px}.board-wrap{transition:width .18s ease}.piece-visual{transform-origin:50% 50%}.board-wrap{position:relative;width:min(100%,860px);aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 22px 20px #0008);transform-style:preserve-3d}.board-surface{position:absolute;inset:0;border:14px solid #674328;border-radius:9px;background:linear-gradient(135deg,#b98555,#96633d 48%,#71472c);box-shadow:inset 0 0 0 3px #dfb17a,inset 0 0 24px #4b2b17,0 3px 0 #4d301d;transform:rotateX(30deg) rotateZ(var(--board-rotation,-30deg));transform-origin:50% 58%;overflow:visible}.board-surface:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(12deg,#ffffff08 0 2px,#00000006 2px 4px),linear-gradient(115deg,#ffffff10,transparent 35%,#0000000b);pointer-events:none}.board-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.cell-center-marker{position:absolute;width:0;height:0;pointer-events:none;visibility:hidden}.cell-hit{position:absolute;z-index:3;width:16.2%;height:16.2%;transform:translate(-50%,-50%);border:0;padding:0;background:transparent;border-radius:20%;display:grid;place-items:center;color:inherit}.cell-hit:focus-visible{outline:3px solid #f8d48e;outline-offset:-8px}.cell-hit.legal-target:after{content:"";position:absolute;inset:13%;border:2px solid #b6d49e;background:#a4cf8e22;border-radius:14px;pointer-events:none}.cell-hit.hover-source:after{content:"";position:absolute;inset:8%;border:3px solid #9ed4a0;background:#8ac78b25;border-radius:14px;box-shadow:0 0 24px #8ac78b99;pointer-events:none}.cell-hit.selected-source:after{content:"";position:absolute;inset:8%;border:3px solid #edc476;background:#ebc17622;border-radius:14px;box-shadow:0 0 22px #f5d18a99;pointer-events:none}.cell-hit.invalid-flash{animation:invalid .3s ease}.piece-stack{position:absolute;inset:0;pointer-events:none}.piece-visual{position:absolute;left:50%;transform:translate(-50%,-50%);transform-origin:50% 70%;filter:drop-shadow(0 4px 3px #0006)}.piece-visual.flat-visual{width:100%;height:100%}.piece-visual.wall-visual{width:100%;height:87%}.piece-visual.cap-visual{width:100%;height:100%}.piece-visual svg{width:100%;height:100%;overflow:visible}.piece-visual.ghost{opacity:.38;filter:drop-shadow(0 5px 6px #d5c18a);pointer-events:none!important;} .piece-visual.ghost *{pointer-events:none!important;}.piece-visual.path-ghost{opacity:.34;filter:drop-shadow(0 4px 5px #d5c18a);}.piece-visual.floating{opacity:.82;filter:drop-shadow(0 9px 7px #000a)}.floating-tag{position:absolute;z-index:8;left:50%;top:8px;transform:translateX(-50%);padding:6px 12px;border:1px solid #d7bd87;background:#29291f;color:#f6e2b8;border-radius:999px;font-size:11px;white-space:nowrap;box-shadow:0 5px 15px #0006}.board-overlay{position:absolute;z-index:12;inset:0;display:grid;place-items:center;pointer-events:none}.notice-banner{width:min(86%,480px);text-align:center;padding:18px 20px;border-radius:16px;border:1px solid #e4c58d;background:linear-gradient(135deg,#2b3029f5,#171d19f5);box-shadow:0 16px 50px #000b, inset 0 1px #ffffff1a;pointer-events:auto;animation:bannerIn .28s ease both}.notice-banner.start{width:auto;min-width:min(75%,330px);padding:12px 20px;animation:bannerIn .25s ease,bannerOut .45s ease 2.2s forwards}.notice-banner h2{font:600 25px Georgia,serif;margin:0 0 6px;color:#f1d5a1}.notice-banner p{margin:0;color:#d4d0c4;font-size:13px}.notice-banner .btn{margin-top:13px}.direction-panel{display:none;margin:12px auto 0;max-width:800px;background:#242d27;border:1px solid #576457;border-radius:12px;padding:12px 14px}.direction-panel.visible{display:block}.direction-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.direction-head strong{font-size:13px}.direction-grid{display:grid;grid-template-columns:repeat(3,42px);grid-template-rows:repeat(3,38px);gap:4px;justify-content:center;margin:10px auto 0}.dir-btn{border:1px solid #60715f;background:#334137;color:#ead7b5;border-radius:7px;font-size:18px}.dir-btn:disabled{opacity:.3}.dir-center{display:grid;place-items:center;color:#aaa;font-size:10px}.drop-editor{display:none;max-width:800px;margin:10px auto 0;padding:12px;border:1px solid #8d734d;background:#3a3428;border-radius:10px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.drop-editor.visible{display:flex}.drop-stepper{display:flex;align-items:center;gap:8px}.drop-stepper button{width:32px;height:32px;border-radius:7px;background:#544631;color:#f5e1ba;border:1px solid #9a8056}.drop-stepper strong{min-width:24px;text-align:center;font-size:18px}.below-board{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:7px auto 0}.below-board .btn{font-size:12px}.status-line{text-align:center;min-height:27px;margin:8px auto 0;color:#ded4bf;font-size:12px}.status-line .turn-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}.history-panel{margin-top:14px}.history-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;color:var(--ink);border:0;padding:0;text-align:left}.history-list{display:none;max-height:230px;overflow:auto;margin-top:9px;border-top:1px solid #ffffff15;padding-top:7px}.history-list.open{display:block}.history-item{display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid #ffffff0d;font-size:11px;line-height:1.4}.history-item .num{color:#d6b77f;min-width:23px;font-variant-numeric:tabular-nums}.history-item .msg{color:#d2d0c6}.history-item .color-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex:none}.footer-note{text-align:center;color:#8e988e;font-size:10px;margin-top:18px;letter-spacing:.04em}.pill{display:inline-block;border:1px solid #788775;border-radius:99px;padding:2px 7px;font-size:9px;color:#d8c99f;text-transform:uppercase;letter-spacing:.08em}.rules-details{margin-top:12px}.rules-details summary{cursor:pointer;color:#d8c59d;font-size:12px}.rules-details p{font-size:11px;line-height:1.5;color:#c4c3b8}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@keyframes bannerIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes bannerOut{to{opacity:0;transform:translateY(-7px);visibility:hidden}}@keyframes invalid{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media(max-width:980px){.app{padding:14px}.layout{grid-template-columns:145px minmax(300px,1fr) 145px;gap:10px}.player-card,.panel{padding:10px}.brand h1{font-size:23px}.piece-visual{width:116px;height:116px}}
+@media(max-width:720px){.app{padding:10px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:9px}.board-column{grid-column:1/-1;order:0!important}.rail{order:1!important}.topbar{gap:10px}.brand h1{font-size:20px}.brand small{font-size:9px}.toolbar{width:100%;justify-content:space-between}.layout{grid-template-columns:1fr;gap:9px}.board-column{order:0}.rail{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rail.player-white,.rail.player-black{order:initial}.player-card{padding:9px}.player-head{margin-bottom:6px}.player-name{font-size:15px}.reserve-label{margin:6px 0 2px}.reserve-count{font-size:11px;padding:3px 0}.reserve-count strong{font-size:14px}.controls-panel{grid-column:1/-1}.board-stage{padding:2px 0 8px;min-height:0}.board-stage.angle-flat{padding-top:0;padding-bottom:1px}.board-stage.angle-rotated{min-height:500px}.board-wrap{width:min(100%,620px)}.board-surface{transform:rotateX(30deg) rotateZ(var(--board-rotation,-30deg));border-width:8px}.piece-visual.flat-visual{width:100%;height:100%}.piece-visual.wall-visual{width:100%;height:87%}.piece-visual.cap-visual{width:100%;height:100%}.cell-hit{width:15.4%;height:15.4%}.floating-tag{top:2px;font-size:10px}.panel-title{font-size:15px}.hint{font-size:11px}}
+@media(max-width:400px){.toolbar .field-label{font-size:9px}.toolbar .btn{padding:8px 9px}.rail{grid-template-columns:1fr 1fr}.player-card{padding:8px}.player-disc{width:21px;height:21px}.player-name{font-size:13px}.piece-visual{width:72px;height:72px}}
+
+/* V6: Menügruppen, korrekt geneigte Brettansicht und lokaler Abbruchknopf. */
+.toolbar{gap:12px;justify-content:flex-end}
+.toolbar-group{display:flex;flex-direction:column;gap:5px;padding:0 10px;border-left:1px solid #ffffff24;min-width:max-content}
+.toolbar-group:first-child{border-left:0;padding-left:0}
+.toolbar-group-title{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.toolbar-segment{display:flex;align-items:center;gap:4px}
+.toolbar-option{min-height:35px;min-width:42px;padding:7px 11px;border:1px solid #687365;border-radius:8px;background:linear-gradient(#39463d,#29332d);color:var(--ink);font-size:12px;box-shadow:0 2px 6px #0003;transition:.14s ease}
+.toolbar-option:hover{filter:brightness(1.14)}
+.toolbar-option.active{border-color:#d5b174;background:linear-gradient(#5a4930,#433622);color:#ffe6b5;box-shadow:0 0 0 1px #d5b17455,inset 0 1px #ffffff19}
+.toolbar-option.zoom-option{font-size:19px;min-width:38px;padding:4px 10px}
+.toolbar-game-group .toolbar-segment{gap:7px}
+.toolbar-game-group .btn{white-space:nowrap;padding:9px 12px}
+.board-stage{perspective:1250px;perspective-origin:50% 48%;padding:18px 5px 24px;min-height:0;overflow:visible}
+.board-stage.angle-flat{padding:2px 5px 4px;min-height:0}
+.board-stage.angle-rotated{padding:clamp(52px,7vw,92px) 5px clamp(68px,9vw,112px);min-height:0}
+.board-wrap{transform-style:preserve-3d;overflow:visible}
+/* The Z rotation is around the board's own normal. The 60-degree X tilt makes the viewing ray 30 degrees above the board plane. All stones inherit this complete transform; none are counter-rotated in screen space. */
+.board-surface{transform:rotateX(30deg) rotateZ(var(--board-rotation,0deg));transform-origin:50% 50%;transform-style:preserve-3d;overflow:visible}
+.board-cancel{display:none;position:absolute;z-index:30;left:50%;bottom:-48px;width:44px;height:44px;place-items:center;padding:0;border-radius:50%;border:2px solid #f0d49c;background:linear-gradient(145deg,#4a3025,#241a15);color:#fff0cf;font-size:31px;line-height:1;box-shadow:0 5px 16px #0009, inset 0 1px #ffffff24;cursor:pointer;transform:translateX(-50%)}
+.board-cancel.visible{display:grid}
+.board-cancel:hover{filter:brightness(1.2);border-color:#ffe3ad}
+.piece-visual{transform-origin:50% 50%}
+.piece-visual.move-preview{opacity:.42;filter:drop-shadow(0 3px 5px #e4d1a7);pointer-events:none}
+.piece-visual.move-preview.flattened-preview{opacity:.48}
+.piece-visual.would-flatten{visibility:hidden!important}
+.choice .swatch{display:grid;place-items:center;width:38px;height:29px;margin:0 auto 5px;border-radius:0;background:transparent;box-shadow:none;transform:none;overflow:visible}
+.choice .swatch svg{display:block;width:100%;height:100%;overflow:visible}
+.choice .swatch.wall{width:38px;height:31px;transform:none;box-shadow:none}
+.choice .swatch.cap{width:38px;height:31px;background:transparent;clip-path:none}
+@media(max-width:980px){.toolbar{justify-content:flex-start}.toolbar-group{padding:0 7px}}
+@media(max-width:720px){
+ .toolbar{justify-content:space-between;gap:8px}
+ .toolbar-group{padding:0 5px;border-left:0;min-width:0}
+ .toolbar-group-title{font-size:9px}
+ .toolbar-option{min-width:36px;padding:7px 8px;font-size:11px}
+ .toolbar-game-group .toolbar-segment{gap:5px}
+ .toolbar-game-group .btn{padding:8px 9px;font-size:11px}
+ .board-stage{perspective:1050px}
+ .board-stage.angle-flat{padding:0 0 2px}
+ .board-stage.angle-rotated{padding:46px 0 68px;min-height:0}
+ .board-cancel{width:40px;height:40px;bottom:-43px;font-size:29px}
+}
+@media(max-width:400px){.toolbar-group{padding:0 2px}.toolbar-option{min-width:32px;padding:6px 6px}.toolbar-game-group .btn{padding:7px 8px;font-size:10px}}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">T</div><div><h1>TAK</h1><small>Ein Spiel aus Stein und Strategie</small></div></div>
+    <div class="toolbar">
+      <div class="toolbar-group toolbar-zoom-group">
+        <span class="toolbar-group-title">Zoom</span>
+        <div class="toolbar-segment"><button id="zoomOut" class="toolbar-option zoom-option" title="Brett verkleinern" aria-label="Brett verkleinern">−</button><button id="zoomIn" class="toolbar-option zoom-option" title="Brett vergrößern" aria-label="Brett vergrößern">+</button></div>
+      </div>
+      <div class="toolbar-group">
+        <span class="toolbar-group-title">Brettansicht</span>
+        <div class="toolbar-segment" id="boardAngleChoices" role="group" aria-label="Brettansicht">
+          <button type="button" class="toolbar-option active" data-angle="0" aria-pressed="true">0°</button>
+          <button type="button" class="toolbar-option" data-angle="20" aria-pressed="false">20°</button>
+        </div>
+      </div>
+      <div class="toolbar-group">
+        <span class="toolbar-group-title">Brettgröße</span>
+        <div class="toolbar-segment" id="boardSizeChoices" role="group" aria-label="Brettgröße">
+          <button type="button" class="toolbar-option" data-size="3" aria-pressed="false">3×3</button>
+          <button type="button" class="toolbar-option active" data-size="4" aria-pressed="true">4×4</button>
+          <button type="button" class="toolbar-option" data-size="5" aria-pressed="false">5×5</button>
+          <button type="button" class="toolbar-option" data-size="6" aria-pressed="false">6×6</button>
+        </div>
+        <select id="sizeSelect" hidden aria-hidden="true"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option></select>
+      </div>
+      <div class="toolbar-group toolbar-game-group">
+        <span class="toolbar-group-title">Spiel</span>
+        <div class="toolbar-segment"><button id="newGameBtn" class="btn primary">Neues Spiel</button><button id="undoBtn" class="btn" disabled>↶ Zurück</button></div>
+      </div>
+    </div>
+  </header>
+  <main class="layout">
+    <aside id="leftRail" class="rail player-white">
+      <section id="whiteCard" class="player-card"></section>
+    </aside>
+    <section class="board-column">
+      <div class="board-stage" id="boardStage">
+        <div class="board-wrap" id="boardWrap">
+          <div class="board-surface" id="boardSurface">
+            <svg class="board-art" id="boardArt" viewBox="0 0 900 900" aria-hidden="true"></svg>
+            <button type="button" id="boardCancel" class="board-cancel" aria-label="Bewegungszug abbrechen" title="Bewegungszug abbrechen">×</button>
+          </div>
+          <div class="board-overlay" id="boardOverlay"></div>
+        </div>
+      </div>
+      <div id="directionPanel" class="direction-panel">
+        <div class="direction-head"><strong>Bewegungsrichtung wählen</strong><span class="pill" id="carryPill">0 / 0 Steine</span></div>
+        <div class="hint" id="moveHint">Wähle eine der vier orthogonalen Richtungen.</div><div class="tool-row" id="pathTools" style="display:none"><button id="undoDropBtn" class="btn">Letzte Ablage ändern</button></div>
+        <div class="direction-grid">
+          <span></span><button class="dir-btn" data-dir="up" aria-label="Nach oben">↑</button><span></span>
+          <button class="dir-btn" data-dir="left" aria-label="Nach links">←</button><span class="dir-center">TAK</span><button class="dir-btn" data-dir="right" aria-label="Nach rechts">→</button>
+          <span></span><button class="dir-btn" data-dir="down" aria-label="Nach unten">↓</button><span></span>
+        </div>
+      </div>
+      <div id="dropEditor" class="drop-editor">
+        <div><strong id="dropTitle">Steine ablegen</strong><div class="hint" id="dropHint">Wie viele Steine sollen auf dieses Feld?</div></div>
+        <div class="drop-stepper"><button id="dropMinus" aria-label="Einen weniger">−</button><strong id="dropCount">1</strong><button id="dropPlus" aria-label="Einen mehr">+</button><button id="confirmDrop" class="btn primary">Ablegen</button></div>
+      </div>
+      <div class="below-board">
+        <button id="poseToggle" class="choice selected"><span class="swatch"></span><span id="poseLabel">Flachstein</span> / Mauer wechseln</button>
+        <button id="capChoice" class="choice"><span class="swatch cap"></span>Kappstein</button>
+      </div>
+      <div class="status-line" id="statusLine" aria-live="polite"></div>
+      <div class="panel controls-panel">
+        <h2 class="panel-title">Spielablauf</h2>
+        <div class="hint" id="mainHint">Wähle einen Stein und setze ihn auf ein freies Feld. Du kannst auch einen Stapel mit deinem eigenen obersten Stein aufnehmen.</div>
+        <div class="tool-row"><button id="historyToggle" class="btn">Zugverlauf öffnen</button></div>
+        <div id="historyPanel" class="history-list" aria-live="polite"></div>
+        <details class="rules-details"><summary>Regelkurzfassung</summary><p>Eine Straße verbindet gegenüberliegende Brettseiten orthogonal. Sie besteht aus eigenen obersten Flachsteinen oder Kappsteinen; Mauern zählen nicht. Stapel bewegen sich geradlinig, höchstens so viele Steine wie die Brettbreite. Pro betretenem Feld muss mindestens ein Stein abgelegt werden; die untersten getragenen Steine kommen zuerst. Nur ein einzelner Kappstein kann eine Mauer umlegen – nicht ein höherer Stapel mit Kappstein oben.</p></details>
+      </div>
+    </section>
+    <aside id="rightRail" class="rail player-black"><section id="blackCard" class="player-card"></section></aside>
+  </main>
+  <div class="footer-note">Lokales Zwei-Personen-Spiel · Version 9 · keine Netzwerkverbindung · Regelbasis: Tak – offene deutsche Beta-Regeln (2016)</div>
+</div>
+<script>
+(() => {
+'use strict';
+const COLORS = ['white','black'];
+const LABEL = {white:'Weiß', black:'Schwarz'};
+const STOCK = {3:{normal:10,cap:0},4:{normal:15,cap:0},5:{normal:21,cap:1},6:{normal:30,cap:1}};
+const $ = id => document.getElementById(id);
+const clone = x => JSON.parse(JSON.stringify(x));
+let state, undoStack=[], moveDraft=null, selectedKind='flat', pendingDrop=null, startSequence=0, previewCache=null, touchPreviewKey=null, seriesStarted=false, turnRotation=null, boardAngle=0, lastBoardPointerType='mouse';
+
+function opposite(c){return c==='white'?'black':'white'};
+function emptyBoard(n){return Array.from({length:n},()=>Array.from({length:n},()=>[]));}
+function reserveFor(n){return {white:{normal:STOCK[n].normal,cap:STOCK[n].cap},black:{normal:STOCK[n].normal,cap:STOCK[n].cap}};}
+function makeGame(n,starter,starterMode){
+  return {size:n,board:emptyBoard(n),reserve:reserveFor(n),startColor:starter,active:starter,opening:1,phase:'playing',winner:null,endReason:null,history:[],starterMode};
+}
+function topOf(cell){return cell.length?cell[cell.length-1]:null;}
+function isRoadStone(p,c){return !!p && p.owner===c && (p.kind==='cap' || (p.kind==='normal' && p.pose==='flat'));}
+function roadExists(c,board=state.board,n=state.size){
+  const reaches=(starts,target)=>{
+    const seen=new Set(),q=[];
+    for(const [r,col] of starts){if(isRoadStone(topOf(board[r][col]),c)){const k=`${r},${col}`;seen.add(k);q.push([r,col]);}}
+    while(q.length){const [r,col]=q.shift();if(target(r,col))return true;
+      for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){const nr=r+dr,nc=col+dc,k=`${nr},${nc}`;if(nr>=0&&nr<n&&nc>=0&&nc<n&&!seen.has(k)&&isRoadStone(topOf(board[nr][nc]),c)){seen.add(k);q.push([nr,nc]);}}
+    }
+    return false;
+  };
+  const vertical=reaches(Array.from({length:n},(_,i)=>[0,i]),r=>r===n-1);
+  if(vertical)return true;
+  return reaches(Array.from({length:n},(_,i)=>[i,0]),(_,c2)=>c2===n-1);
+}
+function flatCount(c){let total=0;for(const row of state.board)for(const cell of row){const t=topOf(cell);if(t&&t.owner===c&&t.kind==='normal'&&t.pose==='flat')total++;}return total;}
+function reserveEmpty(c){return state.reserve[c].normal===0&&state.reserve[c].cap===0;}
+function endCheck(actor){
+  const w=roadExists('white'),b=roadExists('black');
+  if(w||b){state.phase='ended';if(w&&b){state.winner=actor;state.endReason='Doppelsieg';}else{state.winner=w?'white':'black';state.endReason='Straßensieg';}return true;}
+  const full=state.board.every(row=>row.every(cell=>cell.length>0));
+  if(full||reserveEmpty(actor)){
+    const wc=flatCount('white'),bc=flatCount('black');state.phase='ended';state.endReason=full?'Brett bedeckt':'Letzter Stein gesetzt';
+    state.winner=wc===bc?null:(wc>bc?'white':'black');return true;
+  }
+  return false;
+}
+function recordAndSwitch(before,actor,desc){
+  undoStack.push(before);state.history.push({actor,text:desc});seriesStarted=true;selectedKind='flat';previewCache=null;touchPreviewKey=null;turnRotation=null;
+  if(!endCheck(actor)){
+    if(state.opening===1){state.opening=2;state.active=opposite(state.startColor);}
+    else if(state.opening===2){state.opening=0;state.active=state.startColor;}
+    else state.active=opposite(actor);
+  }
+  renderAll();
+  if(state.phase==='ended')say(state.winner?`${LABEL[state.winner]} gewinnt – ${state.endReason}.`:'Unentschieden – Flat Count ausgeglichen.');
+  else say(`${LABEL[state.active]} ist am Zug.`);
+}
+function addPiece(owner,kind,pose='flat',rotation=null){
+  return {id:`p${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`,owner,kind,pose,rotation:kind==='cap'?0:(rotation===null?0:Math.max(-15,Math.min(15,Math.round(rotation/5)*5)))};
+}
+function rotateForStone(pose='flat'){return 0;}
+function setPiece(r,c,kind){
+  if(state.phase!=='playing'||moveDraft)return;
+  if(!state.board[r]||!state.board[r][c]||state.board[r][c].length)return;
+  const opening=state.opening>0;const owner=opening?opposite(state.active):state.active;
+  if(kind==='cap'&&opening){say('In den beiden Eröffnungszügen müssen normale Flachsteine gesetzt werden.');return;}
+  if(kind==='cap'&&state.reserve[owner].cap<1){say(`${LABEL[owner]} hat keinen Kappstein mehr.`);return;}
+  if(kind!=='cap'&&state.reserve[owner].normal<1){say(`${LABEL[owner]} hat keine normalen Steine mehr.`);return;}
+  const before=clone(state);
+  const previewKey=`${r},${c}`;
+  const piece=(previewCache&&previewCache.key===previewKey)?clone(previewCache.piece):addPiece(owner,kind==='cap'?'cap':'normal',kind==='cap'?'cap':(opening?'flat':(kind==='wall'?'wall':'flat')),kind==='cap'?0:rotateForStone(kind==='wall'?'wall':'flat'));
+  piece.owner=owner;
+  if(kind==='cap'){piece.kind='cap';piece.pose='cap';piece.rotation=0;}else{piece.kind='normal';piece.pose=opening?'flat':(kind==='wall'?'wall':'flat');}
+  state.board[r][c].push(piece);previewCache=null;touchPreviewKey=null;turnRotation=null;
+  if(kind==='cap')state.reserve[owner].cap--;else state.reserve[owner].normal--;
+  const desc=opening?`Eröffnung: ${LABEL[state.active]} setzt einen ${LABEL[owner]}en Flachstein auf ${coord(r,c)}.`:`${LABEL[state.active]} setzt ${kind==='cap'?'einen Kappstein':kind==='wall'?'eine Mauer':'einen Flachstein'} auf ${coord(r,c)}.`;
+  recordAndSwitch(before,state.active,desc);
+}
+function coord(r,c){return String.fromCharCode(65+c)+(r+1);}
+function pieceHeight(p){if(p.kind==='cap')return 1.25;return p.pose==='wall'?1.25:0.25;}
+function stackHeight(stack){return stack.reduce((sum,p)=>sum+pieceHeight(p),0);}
+function stackTopSurfaceHeight(stack){return stack.length?stackHeight(stack)-pieceHeight(topOf(stack))/2:0;}
+// A capstone sitting on an existing stack is visually lifted slightly toward the far edge,
+// so its base does not cover the front rim of the supporting stones.
+const CAP_STACK_BACKSHIFT_IN=0.22;
+// The 20° view intentionally exposes rear stack tops: upper pieces receive a small
+// height-dependent rightward viewpoint offset in addition to the board's own projected rotation.
+function pieceVisualPosition(p,baseHeightIn,scale){
+  const capRaise=(p.kind==='cap'&&baseHeightIn>0)?CAP_STACK_BACKSHIFT_IN:0;
+  const angle=boardAngle===20?20*Math.PI/180:0;
+  const extraRight=baseHeightIn>0?baseHeightIn*Math.sin(angle)*0.4*scale:0;
+  return {lift:baseHeightIn+capRaise,right:extraRight};
+}
+function pieceViewRotation(p){const wall=p.kind!=='cap'&&p.pose==='wall'?Math.max(-15,Math.min(15,p.rotation||0)):0;return -boardAngle+wall;}
+function pieceViewTransform(p){return `translate(-50%,-50%) rotate(${pieceViewRotation(p)}deg)`;}
+function canStartMove(r,c){const stack=state.board[r][c],top=topOf(stack);return state.phase==='playing'&&state.opening===0&&top&&top.owner===state.active;}
+function beginPickup(r,c){
+  if(!canStartMove(r,c)){say('Du kannst nur einen Stapel bewegen, dessen oberster Stein dir gehört.');return;}
+  moveDraft={source:{r,c},count:1,carried:state.board[r][c].slice(-1),pickupBaseZ:stackTopSurfaceHeight(state.board[r][c].slice(0,-1))+0.75,direction:null,steps:[],stage:'pickup'};
+  renderAll();say('Ein Stein aufgenommen. Klicke denselben Stapel erneut, um weitere Steine aufzunehmen, oder wähle eine Richtung.');
+}
+function pickupMore(){
+  if(!moveDraft||moveDraft.stage!=='pickup')return;
+  const {r,c}=moveDraft.source;const stack=state.board[r][c];const limit=state.size;
+  if(moveDraft.carried.length>=limit || moveDraft.carried.length>=stack.length){
+    moveDraft.count=1;
+    moveDraft.carried=stack.slice(-1);
+    moveDraft.pickupBaseZ=stackTopSurfaceHeight(stack.slice(0,-1))+0.75;
+    say('Auswahl zurückgesetzt: Nur der oberste Stein bleibt aufgenommen.');
+    renderAll();return;
+  }
+  moveDraft.count=moveDraft.carried.length+1;
+  moveDraft.carried=stack.slice(-moveDraft.count);
+  say(`${moveDraft.carried.length} von ${limit} möglichen Steinen aufgenommen.`);renderAll();
+}
+const DIR={up:[-1,0,'↑'],down:[1,0,'↓'],left:[0,-1,'←'],right:[0,1,'→']};
+function chooseDirection(dir){
+  if(!moveDraft||!(moveDraft.stage==='pickup'||(moveDraft.stage==='path'&&moveDraft.steps.length===0)))return;
+  const [dr,dc]=DIR[dir];const {r,c}=moveDraft.source;const nr=r+dr,nc=c+dc;
+  if(nr<0||nr>=state.size||nc<0||nc>=state.size){say('In dieser Richtung liegt kein Feld mehr.');return;}
+  moveDraft.direction=dir;moveDraft.stage='path';moveDraft.next={r:nr,c:nc};
+  say(`Bewege den Stapel ${DIR[dir][2]} Schritt für Schritt. Klicke das nächste Feld an.`);renderAll();
+}
+function handleCell(r,c){
+  if(state.phase!=='playing')return;
+  if(moveDraft){
+    if(moveDraft.stage==='pickup'){
+      if(r===moveDraft.source.r&&c===moveDraft.source.c){pickupMore();return;}
+      const dr=r-moveDraft.source.r,dc=c-moveDraft.source.c;
+      const dir=dr===-1&&dc===0?'up':dr===1&&dc===0?'down':dr===0&&dc===-1?'left':dr===0&&dc===1?'right':null;
+      if(!dir){say('Wähle eines der vier direkt benachbarten Felder, um die Bewegungsrichtung festzulegen.');return;}
+      moveDraft.direction=dir;moveDraft.stage='path';moveDraft.next={r,c};moveDraft.pendingStep=null;
+      beginPendingDrop(r,c);return;
+    }
+    if(moveDraft.stage==='path'){
+      if(moveDraft.pendingStep&&r===moveDraft.pendingStep.r&&c===moveDraft.pendingStep.c){increasePendingDrop();return;}
+      if(!moveDraft.next||r!==moveDraft.next.r||c!==moveDraft.next.c){say(`Als Nächstes ist ${coord(moveDraft.next.r,moveDraft.next.c)} an der Reihe.`);return;}
+      finalizePendingDrop();
+      if(!moveDraft)return;
+      if(moveDraft.carried.length===0)return;
+      beginPendingDrop(r,c);return;
+    }
+  }
+  const cell=state.board[r][c];
+  if(cell.length===0){setPiece(r,c,selectedKind);return;}
+  if(canStartMove(r,c)){beginPickup(r,c);return;}
+  say('Dieses Feld ist belegt. Nur dein eigener oberster Stapelstein erlaubt das Aufnehmen.');
+}
+function beginPendingDrop(r,c){
+  const cell=state.board[r][c],top=topOf(cell),carried=moveDraft.carried;
+  const crush=!!(top&&top.pose==='wall'&&carried.length===1&&carried[0].kind==='cap');
+  if(top&&(top.kind==='cap'||top.pose==='wall')&&!crush){say(top.kind==='cap'?'Ein Kappstein ist unüberwindlich.':'Eine Mauer blockiert den Weg. Nur ein allein bewegter Kappstein darf sie umlegen.');moveDraft.stage=moveDraft.steps.length?'path':'pickup';moveDraft.pendingStep=null;return;}
+  if(top&&top.kind==='cap'){say('Auf einen Kappstein darf nichts gelegt werden.');return;}
+  const [dr,dc]=DIR[moveDraft.direction];const atEdge=r+dr<0||r+dr>=state.size||c+dc<0||c+dc>=state.size;
+  moveDraft.pendingStep={r,c,count:atEdge?carried.length:1,crush};
+  moveDraft.next={r:r+dr,c:c+dc};
+  say(`Ein Stein auf ${coord(r,c)} abgelegt. Klicke dasselbe Feld erneut für einen weiteren Stein oder das nächste Feld, um weiterzugehen.`);
+  renderAll();
+  if(crush||moveDraft.pendingStep.count===moveDraft.carried.length){finalizePendingDrop();}
+}
+function increasePendingDrop(){
+  const ps=moveDraft.pendingStep;if(!ps)return;
+  const [dr,dc]=DIR[moveDraft.direction],nr=ps.r+dr,nc=ps.c+dc;
+  if(ps.count>=moveDraft.carried.length){say('Es sind keine weiteren Steine zum Ablegen übrig.');return;}
+  if(ps.crush){say('Der Kappstein muss allein auf das Mauerfeld bewegt werden.');return;}
+  if(nr>=0&&nr<state.size&&nc>=0&&nc<state.size){const nt=topOf(state.board[nr][nc]);const remaining=moveDraft.carried.slice(ps.count);if(nt&&(nt.kind==='cap'||nt.pose==='wall')&&!(nt.pose==='wall'&&remaining.length===1&&remaining[0].kind==='cap')){say('Das nächste Feld ist blockiert. Lege alle verbleibenden Steine auf diesem Feld ab.');return;}}
+  ps.count++;
+  say(`${ps.count} Steine für ${coord(ps.r,ps.c)} ausgewählt. Klicke dasselbe Feld weiter oder das nächste Feld.`);
+  if(ps.count===moveDraft.carried.length){finalizePendingDrop();return;}
+  renderAll();
+}
+function finalizePendingDrop(){
+  if(!moveDraft||!moveDraft.pendingStep)return;
+  const ps=moveDraft.pendingStep;
+  const group=moveDraft.carried.splice(0,ps.count);
+  moveDraft.steps.push({r:ps.r,c:ps.c,count:ps.count,crush:ps.crush,pieces:group});
+  moveDraft.pendingStep=null;
+  if(ps.crush||moveDraft.carried.length===0){commitMove();return;}
+  const [dr,dc]=DIR[moveDraft.direction],nr=ps.r+dr,nc=ps.c+dc;
+  if(nr<0||nr>=state.size||nc<0||nc>=state.size){say('Brettrand erreicht – alle getragenen Steine müssen abgelegt sein.');moveDraft.carried.unshift(...group);moveDraft.steps.pop();return;}
+  moveDraft.next={r:nr,c:nc};
+  say(`${ps.count} Stein(e) auf ${coord(ps.r,ps.c)} abgelegt. Noch ${moveDraft.carried.length} zu verteilen.`);
+  renderAll();
+}
+function openDropEditor(r,c){
+  const cell=state.board[r][c], top=topOf(cell), carried=moveDraft.carried;
+  const last=carried.length===1&&carried[0].kind==='cap';
+  const crush=top&&top.pose==='wall'&&last;
+  if(top&&(top.kind==='cap'||top.pose==='wall')&&!crush){say(top.kind==='cap'?'Ein Kappstein ist unüberwindlich.':'Eine Mauer kann nur von einem einzelnen Kappstein umgelegt werden.');return;}
+  if(top&&top.kind==='cap'){say('Auf einen Kappstein darf nichts gelegt werden.');return;}
+  if(top&&top.pose==='wall'&&!crush){say('Eine Mauer blockiert den Weg.');return;}
+  const [dr,dc]=DIR[moveDraft.direction];const nextR=r+dr,nextC=c+dc;const atEdge=nextR<0||nextR>=state.size||nextC<0||nextC>=state.size;
+  pendingDrop={r,c,count:crush?1:(atEdge?carried.length:1),max:crush?1:carried.length,crush,atEdge};
+  $('dropTitle').textContent=crush?'Mauer mit Kappstein umlegen':'Steine auf diesem Feld ablegen';
+  $('dropHint').textContent=crush?'Der Kappstein muss allein auf das Mauerfeld bewegt werden.':'Die untersten getragenen Steine werden zuerst abgelegt.';
+  updateDropEditor();
+}
+function closeDropEditor(){pendingDrop=null;$('dropEditor').classList.remove('visible');}
+function updateDropEditor(){if(!pendingDrop)return;$('dropCount').textContent=pendingDrop.count;$('dropMinus').disabled=pendingDrop.count<=1;$('dropPlus').disabled=pendingDrop.count>=pendingDrop.max;$('confirmDrop').textContent=pendingDrop.crush?'Umlegen':'Ablegen';$('dropEditor').classList.add('visible');}
+function confirmDrop(){
+  if(!pendingDrop||!moveDraft)return;
+  const {r,c,count,crush}=pendingDrop;
+  const dest=state.board[r][c], top=topOf(dest);
+  if(crush){if(count!==1||moveDraft.carried.length!==1||moveDraft.carried[0].kind!=='cap'||!top||top.pose!=='wall'){say('Ungültiger Kappstein-Zug.');closeDropEditor();return;}}
+  else if(top&&(top.pose==='wall'||top.kind==='cap')){say('Dieses Feld ist blockiert.');closeDropEditor();return;}
+  const [dr,dc]=DIR[moveDraft.direction];const nr=r+dr,nc=c+dc;
+  if(!crush&&count<moveDraft.carried.length&&nr>=0&&nr<state.size&&nc>=0&&nc<state.size){
+    const nt=topOf(state.board[nr][nc]);const remaining=moveDraft.carried.slice(count);
+    const canFinishByCrush=nt&&nt.pose==='wall'&&remaining.length===1&&remaining[0].kind==='cap';
+    if(nt&&(nt.kind==='cap'||nt.pose==='wall')&&!canFinishByCrush){say('Das nächste Feld ist blockiert. Lege alle übrigen Steine hier ab oder ändere die vorherige Ablage.');return;}
+  }
+  if(!crush&&count<moveDraft.carried.length&&(nr<0||nr>=state.size||nc<0||nc>=state.size)){say('Am Brettrand müssen alle verbleibenden Steine auf diesem Feld abgelegt werden.');return;}
+  const group=moveDraft.carried.splice(0,count);
+  moveDraft.steps.push({r,c,count,crush,pieces:group});
+  pendingDrop=null;$('dropEditor').classList.remove('visible');
+  if(crush||moveDraft.carried.length===0){commitMove();return;}
+  moveDraft.next={r:nr,c:nc};
+  say(`${count} Stein(e) abgelegt. Noch ${moveDraft.carried.length} zu bewegen – klicke ${coord(moveDraft.next.r,moveDraft.next.c)}.`);renderAll();
+}
+function commitMove(){
+  const draft=moveDraft;if(!draft)return;
+  if(draft.carried.length!==0){say('Alle aufgenommenen Steine müssen abgelegt werden.');return;}
+  const before=clone(state);const source=state.board[draft.source.r][draft.source.c];
+  source.splice(source.length-draft.count,draft.count);
+  for(const step of draft.steps){
+    const target=state.board[step.r][step.c];
+    if(step.crush){const wall=target[target.length-1];wall.pose='flat';}
+    for(const p of step.pieces)target.push(p);
+  }
+  const actor=state.active;const desc=`${LABEL[actor]} bewegt ${draft.count} Stein(e) von ${coord(draft.source.r,draft.source.c)}: ${draft.steps.map(s=>`${s.count} nach ${coord(s.r,s.c)}${s.crush?' (Mauer umgelegt)':''}`).join(', ')}.`;
+  moveDraft=null;pendingDrop=null;recordAndSwitch(before,actor,desc);
+}
+function cancelMove(){if(!moveDraft)return;moveDraft=null;pendingDrop=null;$('dropEditor').classList.remove('visible');renderAll();say('Bewegung abgebrochen. Das Brett ist unverändert.');}
+function undo(){if(moveDraft){cancelMove();return;}if(!undoStack.length||state.phase==='playing'&&state.history.length===0)return;state=undoStack.pop();renderAll();say('Letzte vollständige Aktion rückgängig gemacht.');}
+function countReserves(c){const x=state.reserve[c];return x.normal+x.cap;}
+function say(msg){$('statusLine').textContent=msg;}
+function startBanner(){const el=$('boardOverlay');const color=state.startColor;const token=++startSequence;el.innerHTML=`<div class="notice-banner start"><h2>${state.starterMode==='random'?'Zufallsstart: ':''}${LABEL[color]} beginnt</h2><p>Die ersten beiden Züge setzen jeweils einen Flachstein der gegnerischen Farbe.</p></div>`;setTimeout(()=>{if(token===startSequence){const node=el.querySelector('.start');if(node)node.remove();}},2700);}
+function showEndBanner(){const el=$('boardOverlay');const win=state.winner;const headline=win?`${LABEL[win]} gewinnt!`:'Unentschieden';const detail=state.endReason==='Straßensieg'?'Straße über zwei gegenüberliegende Brettkanten.':state.endReason==='Doppelsieg'?`Doppelsieg – der aktive Spieler (${LABEL[win]}) gewinnt.`:`Flachsieg: Weiß ${flatCount('white')} · Schwarz ${flatCount('black')}.`;
+  el.innerHTML=`<div class="notice-banner"><h2>${headline}</h2><p>${detail}</p><p style="margin-top:7px;color:#e8c98f">Beim nächsten Spiel wird der Startspieler neu ausgelost.</p><button class="btn primary" id="rematchBtn">Neues Spiel</button></div>`;
+ $('rematchBtn').addEventListener('click',()=>newGame(Number($('sizeSelect').value)));
+}
+function newGame(n){
+  if(moveDraft){moveDraft=null;pendingDrop=null;}
+  const starter=COLORS[Math.floor(Math.random()*2)];
+  undoStack=[];moveDraft=null;pendingDrop=null;previewCache=null;touchPreviewKey=null;selectedKind='flat';seriesStarted=false;turnRotation=null;state=makeGame(n,starter,'random');$('sizeSelect').value=String(n);updateSizeButtons(n);$('poseToggle').classList.add('selected');$('capChoice').classList.remove('selected');$('boardOverlay').innerHTML='';$('dropEditor').classList.remove('visible');$('directionPanel').classList.remove('visible');$('boardCancel').classList.remove('visible');applyZoom();renderAll();say(`${LABEL[starter]} beginnt. Erster Zug: einen gegnerischen Flachstein setzen.`);startBanner();
+}
+function coordToXY(r,c){const n=state.size;const even=n%2===0;const start=even?(6-n)/2:(5-n)/2;const x=even?87.5+(c+start)*145:160+(c+start)*145;const y=even?87.5+(r+start)*145:160+(r+start)*145;return {x,y};}
+function pieceSVG(p){
+  // Vereinfachte, verbindliche Körperformen. Geometrie wird nicht mehr aus alten Trapez-/Schnittformen abgeleitet.
+  const light=p.owner==='white';
+  const top=light?'#e8d5ad':'#302b25', side=light?'#b99b6b':'#171512', front=light?'#d8bd8b':'#24201b', edge=light?'#8f754e':'#0d0c0a';
+  const grain=light?'#9c8054':'#66513b';
+  if(p.kind==='cap'&&light){
+    // Weißer quadratischer Sanduhr-Kappstein: Endquerschnitte 1,25 Zoll,
+    // Taille 0,75 Zoll, Gesamthöhe 1,25 Zoll (wie der schwarze Kappstein).
+    // Die Enden und die Taille sind quadratische Querschnitte; vier konkave
+    // Flächen laufen zu einer schmalen, dezent gerillten Mitte zusammen.
+    return `<svg viewBox="0 0 180 180" preserveAspectRatio="xMidYMid meet"><g transform="translate(90 90) scale(1.04) translate(-90 -90)">
+      <defs>
+        <linearGradient id="hourglassLeft${p.id}" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#b28f5e"/><stop offset=".48" stop-color="#dfc79a"/><stop offset="1" stop-color="#c5a777"/></linearGradient>
+        <linearGradient id="hourglassRight${p.id}" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#a98758"/><stop offset=".5" stop-color="#cdb384"/><stop offset="1" stop-color="#94734a"/></linearGradient>
+        <linearGradient id="hourglassTop${p.id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5e7c8"/><stop offset=".55" stop-color="#e5d0a5"/><stop offset="1" stop-color="#c7aa79"/></linearGradient>
+        <linearGradient id="hourglassLower${p.id}" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#b18e5d"/><stop offset=".52" stop-color="#d9bf90"/><stop offset="1" stop-color="#96764c"/></linearGradient>
+      </defs>
+      <!-- obere quadratische Stirnfläche -->
+      <path d="M90 10 L162 40 L90 70 L18 40 Z" fill="url(#hourglassTop${p.id})" stroke="${edge}" stroke-width="2.4" stroke-linejoin="round"/>
+      <!-- obere, nach innen laufende Flanken -->
+      <path d="M18 40 L90 70 L90 112 L47 94 Z" fill="url(#hourglassLeft${p.id})" stroke="${edge}" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M90 70 L162 40 L133 94 L90 112 Z" fill="url(#hourglassRight${p.id})" stroke="${edge}" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- untere, nach außen laufende Flanken -->
+      <path d="M47 94 L90 112 L90 170 L18 142 Z" fill="url(#hourglassLower${p.id})" stroke="${edge}" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M90 112 L133 94 L162 142 L90 170 Z" fill="url(#hourglassRight${p.id})" stroke="${edge}" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- dezente gedrechselte Konturen an der Taille -->
+      <path d="M47 94 Q90 112 133 94" fill="none" stroke="#806442" stroke-width="2.8" opacity=".78"/>
+      <path d="M51 100 Q90 117 129 100" fill="none" stroke="#f3e3c0" stroke-width="2" opacity=".58"/>
+      <path d="M55 106 Q90 121 125 106" fill="none" stroke="#8d7048" stroke-width="1.6" opacity=".5"/>
+      <path d="M31 47 Q54 62 76 68 M104 68 Q126 62 149 47 M29 139 Q55 153 76 162 M104 162 Q126 153 151 139" fill="none" stroke="${grain}" stroke-width="1.8" opacity=".25"/>
+      <path d="M90 10 L90 70 M90 112 L90 170" stroke="#f6e9cb" stroke-width="1.2" opacity=".2"/>
+    </g></svg>`;
+  }
+  if(p.kind==='cap'&&!light){
+    // Schwarzer gedrechselter Knauf, 1,25 Zoll hoch. Die sichtbaren ovalen
+    // Stirn-/Lichtflächen und die elliptischen Ringe betonen den Blick von oben.
+    return `<svg viewBox="0 0 180 180" preserveAspectRatio="xMidYMid meet"><g transform="translate(90 90) scale(.96) translate(-90 -90)">
+      <defs>
+        <radialGradient id="knobHead${p.id}" cx="34%" cy="18%"><stop stop-color="#65543e"/><stop offset=".38" stop-color="#3b3023"/><stop offset=".78" stop-color="#211b15"/><stop offset="1" stop-color="#100e0b"/></radialGradient>
+        <linearGradient id="knobStem${p.id}" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#0d0b09"/><stop offset=".32" stop-color="#493a29"/><stop offset=".62" stop-color="#211a14"/><stop offset="1" stop-color="#0b0907"/></linearGradient>
+        <linearGradient id="knobFoot${p.id}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#403426"/><stop offset=".48" stop-color="#211a13"/><stop offset="1" stop-color="#0b0907"/></linearGradient>
+        <radialGradient id="knobCrown${p.id}" cx="38%" cy="22%"><stop stop-color="#766247"/><stop offset=".58" stop-color="#3d3225"/><stop offset="1" stop-color="#1a1510"/></radialGradient>
+      </defs>
+      <!-- runder Standfuß mit sichtbarer oberer Ellipse -->
+      <path d="M20 143 C20 132 51 124 90 124 C129 124 160 132 160 143 L160 157 C160 168 129 176 90 176 C51 176 20 168 20 157 Z" fill="url(#knobFoot${p.id})" stroke="#090806" stroke-width="2.5"/>
+      <ellipse cx="90" cy="143" rx="70" ry="19" fill="#382d20" stroke="#0b0907" stroke-width="2.5"/>
+      <ellipse cx="90" cy="142" rx="59" ry="13" fill="none" stroke="#806748" stroke-width="2" opacity=".48"/>
+      <!-- eingezogener, gedrechselter Hals -->
+      <path d="M55 134 C62 123 65 113 61 101 C55 94 52 88 54 81 L126 81 C128 88 125 94 119 101 C115 113 118 123 125 134 C111 141 69 141 55 134 Z" fill="url(#knobStem${p.id})" stroke="#0a0907" stroke-width="2"/>
+      <path d="M54 88 Q90 101 126 88 M58 99 Q90 111 122 99 M61 119 Q90 130 119 119" fill="none" stroke="#8b7250" stroke-width="2" opacity=".38"/>
+      <path d="M58 126 Q90 139 122 126" fill="none" stroke="#090806" stroke-width="3" opacity=".72"/>
+      <!-- gerundeter Kopf; die breite elliptische Krone zeigt die erhöhte Sichtperspektive -->
+      <path d="M54 91 C48 83 39 72 35 58 C28 34 46 10 90 8 C134 10 152 34 145 58 C141 72 132 83 126 91 C117 101 104 106 90 106 C76 106 63 101 54 91 Z" fill="url(#knobHead${p.id})" stroke="#090806" stroke-width="2.8"/>
+      <ellipse cx="90" cy="27" rx="43" ry="18" fill="url(#knobCrown${p.id})" stroke="#17120d" stroke-width="2"/>
+      <path d="M51 28 Q90 7 129 28" fill="none" stroke="#8a7352" stroke-width="2.2" opacity=".62"/>
+      <path d="M58 39 Q90 23 122 39" fill="none" stroke="#a18a65" stroke-width="1.8" opacity=".26"/>
+      <path d="M43 55 Q39 72 55 88 M137 55 Q141 72 125 88" fill="none" stroke="#756047" stroke-width="2.2" opacity=".34"/>
+      <path d="M64 92 Q90 104 116 92" fill="none" stroke="#090806" stroke-width="3" opacity=".68"/>
+      <path d="M28 147 Q90 166 152 147" fill="none" stroke="#9a7d53" stroke-width="1.8" opacity=".32"/>
+    </g></svg>`;
+  }
+  if(light){
+    // Ein und derselbe Quader: liegend 1.25 x 1.25 x 0.25, stehend 1.25 x 0.25 x 1.25.
+    if(p.pose==='wall')return `<svg viewBox="0 0 160 180" preserveAspectRatio="xMidYMid meet"><path d="M39 20 119 20 119 151 39 151Z" fill="${front}" stroke="${edge}" stroke-width="2"/><path d="M119 20 139 9 139 139 119 151Z" fill="${side}" stroke="${edge}" stroke-width="2"/><path d="M39 20 59 9 139 9 119 20Z" fill="${top}" stroke="${edge}" stroke-width="2"/><path d="M50 48 Q80 42 108 48 M50 105 Q80 99 108 105" stroke="${grain}" opacity=".22" fill="none" stroke-width="2"/></svg>`;
+    return `<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet"><path d="M18 22 127 22 150 65 40 65Z" fill="${top}" stroke="${edge}" stroke-width="2"/><path d="M40 65 150 65 150 91 40 91Z" fill="${side}" stroke="${edge}" stroke-width="2"/><path d="M18 22 40 65 40 91 18 48Z" fill="${front}" stroke="${edge}" stroke-width="2"/><path d="M52 39 Q80 30 111 47" stroke="${grain}" opacity=".25" fill="none" stroke-width="2"/></svg>`;
+  }
+  // Schwarzer Normalstein: derselbe Zylinder (Ø 1.25, Höhe 0.25), liegend als Puck, stehend um 90° um X.
+  if(p.pose==='wall')return `<svg viewBox="0 0 190 150" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="blackWallBarrel${p.id}" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#080706"/><stop offset=".52" stop-color="#30271d"/><stop offset="1" stop-color="#100e0c"/></linearGradient><radialGradient id="blackWallFace${p.id}" cx="34%" cy="25%"><stop stop-color="#4b4032"/><stop offset=".6" stop-color="#211c16"/><stop offset="1" stop-color="#0b0908"/></radialGradient></defs><path d="M82 14 C54 14 31 41 31 75 C31 109 54 136 82 136 L111 136 C83 136 60 109 60 75 C60 41 83 14 111 14Z" fill="url(#blackWallBarrel${p.id})" stroke="#080706" stroke-width="2.5"/><path d="M82 14 C54 14 31 41 31 75 C31 109 54 136 82 136" fill="none" stroke="#57452f" stroke-width="2" opacity=".5"/><ellipse cx="111" cy="75" rx="49" ry="61" fill="url(#blackWallFace${p.id})" stroke="#080706" stroke-width="3"/><ellipse cx="111" cy="75" rx="42" ry="53" fill="none" stroke="#6a543a" stroke-width="2" opacity=".6"/><path d="M82 49 Q105 29 135 47 M77 88 Q110 110 145 86" fill="none" stroke="#8a7150" opacity=".23" stroke-width="2.2"/><path d="M76 20 Q58 44 61 76" fill="none" stroke="#786044" opacity=".45" stroke-width="2.5"/></svg>`;
+  return `<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet"><path d="M15 35 C15 16 44 7 80 7 C116 7 145 16 145 35 L145 64 C145 83 116 92 80 92 C44 92 15 83 15 64Z" fill="#171512" stroke="#090807" stroke-width="3"/><ellipse cx="80" cy="35" rx="65" ry="28" fill="#302b25" stroke="#090807" stroke-width="2"/><path d="M32 32 Q71 15 118 32 M31 59 Q80 77 130 58" fill="none" stroke="#756047" opacity=".28" stroke-width="2"/></svg>`;
+}
+function renderBoard(){
+ $('boardSurface').style.setProperty('--board-rotation',`${boardAngle===20?20:0}deg`);
+ $('boardStage')?.classList.toggle('angle-flat',boardAngle===0);$('boardStage')?.classList.toggle('angle-rotated',boardAngle===20);
+ $('boardSurface').querySelectorAll('.cell-hit,.cell-center-marker,.floating-tag,.floating-stack,.move-preview-layer').forEach(e=>e.remove());
+ const art=$('boardArt');let svg=`<defs><linearGradient id="cellA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0dfbd"/><stop offset="1" stop-color="#d8c39d"/></linearGradient><linearGradient id="cellB" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7d3aa"/><stop offset="1" stop-color="#c9b184"/></linearGradient><linearGradient id="diamond" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8a4d2d"/><stop offset="1" stop-color="#512e1e"/></linearGradient></defs>`;
+ // 5 x 5 large octagons. Their 1.45-inch pitch is 145 units on the 10.5-inch / 900-unit board.
+ for(let r=0;r<5;r++)for(let c=0;c<5;c++){const x=87.5+c*145,y=87.5+r*145,w=145,k=17;const pts=[[x+k,y],[x+w-k,y],[x+w,y+k],[x+w,y+w-k],[x+w-k,y+w],[x+k,y+w],[x,y+w-k],[x,y+k]].map(p=>p.join(',')).join(' ');svg+=`<polygon points="${pts}" fill="url(#cellA)" stroke="#ad956c" stroke-width="2"/><path d="M ${x+k+3} ${y+4} H ${x+w-k-3}" stroke="#fff8e9" opacity=".45" stroke-width="2"/>`;}
+ // 6 x 6 small dark diamonds on the lattice intersections for even boards.
+ for(let r=0;r<6;r++)for(let c=0;c<6;c++){const x=87.5+c*145,y=87.5+r*145,s=25;svg+=`<polygon points="${x},${y-s} ${x+s},${y} ${x},${y+s} ${x-s},${y}" fill="url(#diamond)" stroke="#bd895a" stroke-width="1.5"/>`;}
+ // Inaktive Spielfelder bei 3x3/4x4 dezent abdunkeln. Bei ungeraden Größen sind die großen Achtecke aktiv, bei geraden Größen die dunklen Rauten.
+ if(state.size<=4){
+  if(state.size%2===1){const st=(5-state.size)/2,active=new Set();for(let rr=0;rr<state.size;rr++)for(let cc=0;cc<state.size;cc++)active.add(`${cc+st},${rr+st}`);for(let rr=0;rr<5;rr++)for(let cc=0;cc<5;cc++)if(!active.has(`${cc},${rr}`)){const x=87.5+cc*145,y=87.5+rr*145,w=145,k=17;const pts=[[x+k,y],[x+w-k,y],[x+w,y+k],[x+w,y+w-k],[x+w-k,y+w],[x+k,y+w],[x,y+w-k],[x,y+k]].map(p=>p.join(',')).join(' ');svg+=`<polygon points="${pts}" fill="#241b14" opacity=".42" pointer-events="none"/>`;}}
+  else{const st=(6-state.size)/2,active=new Set();for(let rr=0;rr<state.size;rr++)for(let cc=0;cc<state.size;cc++)active.add(`${cc+st},${rr+st}`);for(let rr=0;rr<6;rr++)for(let cc=0;cc<6;cc++)if(!active.has(`${cc},${rr}`)){const x=87.5+cc*145,y=87.5+rr*145,sz=25;svg+=`<polygon points="${x},${y-sz} ${x+sz},${y} ${x},${y+sz} ${x-sz},${y}" fill="#17110d" opacity=".58" pointer-events="none"/>`;}}
+ }
+ // faint inset border and woodgrain
+ svg+=`<rect x="3" y="3" width="894" height="894" fill="none" stroke="#e6b77d" stroke-width="4" opacity=".3"/>`;
+ art.innerHTML=svg;
+ // Remove existing cell controls and rebuild them at the active hybrid positions.
+ $('boardSurface').querySelectorAll('.cell-hit').forEach(e=>e.remove());
+ const even=state.size%2===0,start=even?(6-state.size)/2:(5-state.size)/2;
+ const cellButtons=new Map();
+ for(let r=0;r<state.size;r++)for(let c=0;c<state.size;c++){
+  const {x,y}=coordToXY(r,c);const b=document.createElement('button');b.className='cell-hit';b.type='button';b.dataset.r=r;b.dataset.c=c;b.setAttribute('aria-label',`Feld ${coord(r,c)}`);b.style.left=(x/9)+'%';b.style.top=(y/9)+'%';b.style.pointerEvents='none';
+  const marker=document.createElement('span');marker.className='cell-center-marker';marker.dataset.r=r;marker.dataset.c=c;marker.style.left=(x/9)+'%';marker.style.top=(y/9)+'%';$('boardSurface').appendChild(marker);
+  const cell=state.board[r][c];const displayCell=(moveDraft&&moveDraft.source.r===r&&moveDraft.source.c===c)?cell.slice(0,cell.length-moveDraft.count):cell;const stack=document.createElement('span');stack.className='piece-stack';
+  const scale=$('boardWrap').clientWidth/10.5;
+  let zInches=0;
+  for(let i=0;i<displayCell.length;i++){
+    const p=displayCell[i];const vis=document.createElement('span');vis.className='piece-visual '+(p.kind==='cap'?'cap-visual':'')+(p.pose==='wall'?' wall-visual':' flat-visual');const vertical=pieceHeight(p);
+    const pos=pieceVisualPosition(p,zInches,scale);
+    vis.dataset.pieceId=p.id;vis.style.top=`calc(50% - ${pos.lift*scale}px)`;vis.style.left=`calc(50% + ${pos.right}px)`;vis.style.transform=pieceViewTransform(p);vis.style.zIndex=String(i+1);vis.innerHTML=pieceSVG(p);stack.appendChild(vis);zInches+=vertical;
+  }
+  if(moveDraft&&moveDraft.source.r===r&&moveDraft.source.c===c&&moveDraft.carried.length){
+   const floating=document.createElement('div');floating.className='floating-stack';floating.style.position='absolute';floating.style.inset='auto';floating.style.zIndex='18';floating.style.pointerEvents='none';floating.style.width='16.2%';floating.style.height='16.2%';floating.style.left=(x/9)+'%';floating.style.top=(y/9)+'%';floating.style.transform='translate(-50%,-50%)';
+   // The lowest carried stone keeps the height it had on the first pickup. Further pickups
+   // extend upward; the growing gap below it is intentional. It never depends on board width.
+   const floatBaseZ=moveDraft.pickupBaseZ??(stackTopSurfaceHeight(displayCell)+0.75);
+   let carriedBottomZ=floatBaseZ;
+   for(const carriedPiece of moveDraft.carried){
+    const floatingVisual=document.createElement('span');floatingVisual.className='piece-visual floating '+(carriedPiece.kind==='cap'?'cap-visual':'')+(carriedPiece.pose==='wall'?' wall-visual':' flat-visual');
+    // Position by the piece centre, while pickupBaseZ represents the clear gap below its bottom face.
+    const carriedCenterZ=carriedBottomZ+pieceHeight(carriedPiece)/2;
+    const pos=pieceVisualPosition(carriedPiece,carriedCenterZ,scale);
+    floatingVisual.style.top=`calc(50% - ${pos.lift*scale}px)`;floatingVisual.style.left=`calc(50% + ${pos.right}px)`;floatingVisual.style.transform=pieceViewTransform(carriedPiece);floatingVisual.style.zIndex='19';floatingVisual.innerHTML=pieceSVG(carriedPiece);floating.appendChild(floatingVisual);
+    carriedBottomZ+=pieceHeight(carriedPiece);
+   }
+   $('boardSurface').appendChild(floating);
+  }
+  if(moveDraft&&moveDraft.source.r===r&&moveDraft.source.c===c){b.classList.add('selected-source');}
+  if(moveDraft&&moveDraft.stage==='path'&&moveDraft.next&&moveDraft.next.r===r&&moveDraft.next.c===c)b.classList.add('legal-target');
+  b.appendChild(stack);cellButtons.set(`${r},${c}`,b);
+  b.addEventListener('click',event=>{if(event.detail===0)handleCell(r,c);});
+  $('boardSurface').appendChild(b);
+ }
+  if(moveDraft){
+   const {x,y}=coordToXY(moveDraft.source.r,moveDraft.source.c);const tag=document.createElement('div');tag.className='floating-tag';tag.textContent=`Aufgenommen: ${moveDraft.count} / ${state.size} · ${moveDraft.stage==='pickup'?'Richtung wählen':`Weg ${DIR[moveDraft.direction][2]}`}`;$('boardSurface').appendChild(tag);
+   // Preview pieces are children of the exact target cell's own stack. They use the same
+   // dimensions, transforms and vertical offsets as committed pieces and are removed on redraw.
+   const ghostGroups=moveDraft.steps.map(st=>({r:st.r,c:st.c,pieces:st.pieces,crush:st.crush}));
+   if(moveDraft.pendingStep){ghostGroups.push({r:moveDraft.pendingStep.r,c:moveDraft.pendingStep.c,pieces:moveDraft.carried.slice(0,moveDraft.pendingStep.count),crush:moveDraft.pendingStep.crush});}
+   const scale=$('boardWrap').clientWidth/10.5;
+   for(const group of ghostGroups){
+    const cellButton=cellButtons.get(`${group.r},${group.c}`);if(!cellButton)continue;
+    const targetLayer=cellButton.querySelector('.piece-stack');if(!targetLayer)continue;
+    const target=state.board[group.r][group.c];let zInches=stackHeight(target);
+    if(group.crush&&target.length){
+     const wall=target[target.length-1];const oldVisual=targetLayer.querySelector(`[data-piece-id="${wall.id}"]`);if(oldVisual)oldVisual.classList.add('would-flatten');
+     const flattened={...wall,pose:'flat',rotation:0};const flattenedZ=Math.max(0,zInches-pieceHeight(wall));const flatPreview=document.createElement('span');flatPreview.className='piece-visual move-preview flattened-preview '+(flattened.kind==='cap'?'cap-visual':'flat-visual');const pos=pieceVisualPosition(flattened,flattenedZ,scale);flatPreview.style.top=`calc(50% - ${pos.lift*scale}px)`;flatPreview.style.left=`calc(50% + ${pos.right}px)`;flatPreview.style.transform=pieceViewTransform(flattened);flatPreview.style.zIndex='20';flatPreview.innerHTML=pieceSVG(flattened);targetLayer.appendChild(flatPreview);zInches=flattenedZ+pieceHeight(flattened);
+    }
+    for(const piece of group.pieces){
+     const preview=document.createElement('span');preview.className='piece-visual move-preview '+(piece.kind==='cap'?'cap-visual':'')+(piece.pose==='wall'?' wall-visual':' flat-visual');const pos=pieceVisualPosition(piece,zInches,scale);preview.style.top=`calc(50% - ${pos.lift*scale}px)`;preview.style.left=`calc(50% + ${pos.right}px)`;preview.style.transform=pieceViewTransform(piece);preview.style.zIndex='21';preview.innerHTML=pieceSVG(piece);targetLayer.appendChild(preview);zInches+=pieceHeight(piece);
+    }
+   }
+  }
+
+}
+function showPlacementPreview(button,r,c){
+ if(moveDraft||state.phase!=='playing'||state.board[r][c].length)return;
+ document.querySelectorAll('.piece-visual.ghost').forEach(el=>el.remove());
+ const kind=state.opening>0?'flat':selectedKind;const owner=state.opening>0?opposite(state.active):state.active;
+ const piece=addPiece(owner,kind==='cap'?'cap':'normal',kind==='cap'?'cap':(kind==='wall'?'wall':'flat'),kind==='cap'?0:rotateForStone(kind==='wall'?'wall':'flat'));
+ previewCache={key:`${r},${c}`,piece};
+ const old=button.querySelector('.piece-visual.ghost');if(old)old.remove();
+ const g=document.createElement('span');g.className='piece-visual ghost '+(piece.kind==='cap'?'cap-visual':piece.pose==='wall'?'wall-visual':'flat-visual');g.style.top='50%';g.style.transform=pieceViewTransform(piece);g.style.zIndex='8';g.innerHTML=pieceSVG(piece);button.querySelector('.piece-stack').appendChild(g);
+}
+
+function projectedCellAt(clientX,clientY){
+ const markers=[...$('boardSurface').querySelectorAll('.cell-center-marker')];
+ if(!markers.length)return null;
+ const points=markers.map(marker=>{const rect=marker.getBoundingClientRect();return {r:Number(marker.dataset.r),c:Number(marker.dataset.c),x:rect.left,y:rect.top};});
+ let best=null,bestDistance=Infinity,localSpacing=Infinity;
+ for(let i=0;i<points.length;i++){
+  const point=points[i],distance=Math.hypot(clientX-point.x,clientY-point.y);
+  if(distance<bestDistance){bestDistance=distance;best=point;}
+  let nearest=Infinity;
+  for(let j=0;j<points.length;j++)if(i!==j){const d=Math.hypot(point.x-points[j].x,point.y-points[j].y);if(d<nearest)nearest=d;}
+  if(distance<bestDistance+1e-6)localSpacing=nearest;
+ }
+ if(!best||!Number.isFinite(localSpacing)||bestDistance>localSpacing*.56)return null;
+ const button=$('boardSurface').querySelector(`.cell-hit[data-r="${best.r}"][data-c="${best.c}"]`);
+ return button?{r:best.r,c:best.c,button}:null;
+}
+function clearPlacementHover(){
+ const board=$('boardSurface');
+ board.querySelectorAll('.piece-visual.ghost').forEach(el=>el.remove());
+ board.querySelectorAll('.cell-hit.hover-source').forEach(el=>el.classList.remove('hover-source'));
+ if(!touchPreviewKey)previewCache=null;
+}
+function handleBoardPointerMove(event){
+ if(event.pointerType==='touch')return;
+ if(event.target instanceof Element&&event.target.closest('.notice-banner,.board-cancel'))return;
+ const hit=projectedCellAt(event.clientX,event.clientY);
+ if(!hit){if(!touchPreviewKey)clearPlacementHover();return;}
+ const {r,c,button}=hit,cell=state.board[r]?.[c];
+ if(!cell||state.phase!=='playing'||moveDraft){if(!touchPreviewKey)clearPlacementHover();return;}
+ if(cell.length){
+  if(!touchPreviewKey){$('boardSurface').querySelectorAll('.piece-visual.ghost').forEach(el=>el.remove());previewCache=null;}
+  $('boardSurface').querySelectorAll('.cell-hit.hover-source').forEach(el=>el.classList.remove('hover-source'));
+  if(canStartMove(r,c))button.classList.add('hover-source');
+  return;
+ }
+ $('boardSurface').querySelectorAll('.cell-hit.hover-source').forEach(el=>el.classList.remove('hover-source'));
+ const key=`${r},${c}`;
+ if(previewCache?.key!==key||!button.querySelector('.piece-visual.ghost')){
+  $('boardSurface').querySelectorAll('.piece-visual.ghost').forEach(el=>el.remove());
+  previewCache=null;
+  showPlacementPreview(button,r,c);
+ }
+}
+function handleBoardPointerLeave(){if(!touchPreviewKey)clearPlacementHover();}
+function handleBoardClick(event){
+ if(event.target instanceof Element&&event.target.closest('.board-cancel,.notice-banner'))return;
+ if(event.detail===0&&event.target instanceof Element&&event.target.closest('.cell-hit'))return;
+ const hit=projectedCellAt(event.clientX,event.clientY);if(!hit)return;
+ const {r,c,button}=hit,cell=state.board[r]?.[c];
+ const isTouch=event.pointerType==='touch'||lastBoardPointerType==='touch';
+ if(isTouch&&!moveDraft&&state.phase==='playing'&&cell&&!cell.length){
+  const key=`${r},${c}`;
+  if(touchPreviewKey!==key){showPlacementPreview(button,r,c);touchPreviewKey=key;say('Steinvorschau angezeigt. Tippe dasselbe Feld erneut zum Setzen.');return;}
+  touchPreviewKey=null;
+ }
+ handleCell(r,c);
+}
+function undoLastDrop(){
+ if(!moveDraft||!moveDraft.steps.length)return;
+ const last=moveDraft.steps.pop();moveDraft.carried=last.pieces.concat(moveDraft.carried);moveDraft.next={r:last.r,c:last.c};moveDraft.stage='path';pendingDrop=null;$('dropEditor').classList.remove('visible');renderAll();say(`Ablage auf ${coord(last.r,last.c)} zurückgenommen. Du kannst die Menge neu bestimmen.`);
+}
+function renderCards(){
+ for(const color of COLORS){const card=$(color+'Card');const rr=state.reserve[color];card.classList.toggle('active',state.phase==='playing'&&state.active===color);card.innerHTML=`<div class="player-head"><span class="player-disc ${color==='white'?'disc-white':'disc-black'}"></span><div class="player-name">${LABEL[color]}</div></div><div class="reserve-label">Vorrat</div><div class="reserve-count"><span>Normale Steine</span><strong>${rr.normal}</strong></div><div class="reserve-count"><span>Kappsteine</span><strong>${rr.cap}</strong></div><div class="reserve-count"><span>Verfügbar gesamt</span><strong>${countReserves(color)}</strong></div>`;}
+ const whiteFirst=state.active==='white';$('leftRail').style.order=whiteFirst?'0':'2';$('rightRail').style.order=whiteFirst?'2':'0';
+}
+function renderHistory(){const panel=$('historyPanel');panel.innerHTML='';state.history.forEach((h,i)=>{const div=document.createElement('div');div.className='history-item';div.innerHTML=`<span class="num">${String(i+1).padStart(2,'0')}</span><span class="color-dot ${h.actor==='white'?'disc-white':'disc-black'}"></span><span class="msg"></span>`;div.querySelector('.msg').textContent=h.text;panel.appendChild(div);});}
+function updateSizeButtons(size){document.querySelectorAll('[data-size]').forEach(b=>{const on=Number(b.dataset.size)===Number(size);b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});}
+function updateAngleButtons(){document.querySelectorAll('[data-angle]').forEach(b=>{const on=Number(b.dataset.angle)===boardAngle;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});}
+function updateStoneChoiceIcons(){
+ const owner=state.opening>0?opposite(state.active):state.active;
+ const pose=selectedKind==='wall'?'wall':'flat';
+ const poseIcon=$('poseToggle').querySelector('.swatch');
+ const capIcon=$('capChoice').querySelector('.swatch');
+ poseIcon.innerHTML=pieceSVG({id:'choice-pose-'+owner,owner,kind:'normal',pose,rotation:0});
+ capIcon.innerHTML=pieceSVG({id:'choice-cap-'+owner,owner,kind:'cap',pose:'cap',rotation:0});
+}
+function renderControls(){
+ const opening=state.opening>0,playing=state.phase==='playing';
+ $('poseToggle').classList.toggle('selected',selectedKind!=='cap');$('poseLabel').textContent=selectedKind==='wall'?'Mauer':'Flachstein';$('poseToggle').disabled=!playing||!!moveDraft||opening;$('capChoice').disabled=!playing||!!moveDraft||opening||state.reserve[state.active].cap===0;
+ $('directionPanel').classList.remove('visible');$('pathTools').style.display=moveDraft&&moveDraft.steps.length?'flex':'none';$('undoDropBtn').disabled=!moveDraft||!moveDraft.steps.length;
+ $('carryPill').textContent=moveDraft?`${moveDraft.count} / ${state.size} Steine`:'';
+ $('moveHint').textContent=moveDraft?(moveDraft.stage==='pickup'?'Klicke den Quellstapel wiederholt, um weitere Steine aufzunehmen. Wähle dann das erste direkte Nachbarfeld.':`Klicke dasselbe Zielfeld wiederholt, um dort weitere Steine abzulegen. Das nächste Feld in gerader Richtung führt den Weg fort.`):'';
+ document.querySelectorAll('.dir-btn').forEach(b=>{b.disabled=true;});
+ $('boardCancel').classList.toggle('visible',!!moveDraft);$('undoBtn').disabled=!undoStack.length&&!moveDraft;updateStoneChoiceIcons();
+ $('mainHint').textContent=opening?`Eröffnungszug ${state.opening} von 2: ${LABEL[state.active]} setzt einen flachen Stein der gegnerischen Farbe.`:moveDraft?(moveDraft.stage==='pickup'?'Klicke wiederholt auf den Quellstapel. Das erste direkte Nachbarfeld legt die Richtung fest.':'Wiederholte Klicks auf dasselbe Feld legen weitere Steine dort ab; der Klick auf das nächste Feld setzt den geraden Weg fort.'):`${LABEL[state.active]} ist am Zug. Setze einen Stein oder bewege einen Stapel mit eigenem obersten Stein.`;
+}
+function renderAll(){renderBoard();renderCards();renderHistory();renderControls();if(state.phase==='ended')showEndBanner();else if($('boardOverlay').querySelector('.notice-banner:not(.start)'))$('boardOverlay').innerHTML='';}
+
+$('poseToggle').addEventListener('click',()=>{selectedKind=selectedKind==='wall'?'flat':'wall';previewCache=null;touchPreviewKey=null;document.querySelectorAll('.piece-visual.ghost').forEach(el=>el.remove());renderControls();});
+$('capChoice').addEventListener('click',()=>{selectedKind='cap';previewCache=null;touchPreviewKey=null;document.querySelectorAll('.piece-visual.ghost').forEach(el=>el.remove());renderControls();});
+document.querySelectorAll('[data-size]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.size);$('sizeSelect').value=String(n);updateSizeButtons(n);say(`${n}×${n} ausgewählt. Mit „Neues Spiel“ wird diese Brettgröße gestartet.`);}));
+document.querySelectorAll('[data-angle]').forEach(b=>b.addEventListener('click',()=>{boardAngle=Number(b.dataset.angle);updateAngleButtons();applyZoom();renderBoard();}));
+$('newGameBtn').addEventListener('click',()=>newGame(Number($('sizeSelect').value)));
+$('undoBtn').addEventListener('click',undo);$('boardCancel').addEventListener('click',cancelMove);
+let boardZoom=1;function applyZoom(){const stage=$('boardStage');const available=Math.max(160,stage.clientWidth||860);const fit=boardAngle===20?1.282:1;const base=Math.min(860,available/fit);const width=Math.max(150,base*boardZoom);$('boardWrap').style.width=`${width}px`;}
+$('zoomIn').addEventListener('click',()=>{boardZoom=Math.min(1.15,boardZoom+.05);applyZoom();renderBoard();});$('zoomOut').addEventListener('click',()=>{boardZoom=Math.max(.75,boardZoom-.05);applyZoom();renderBoard();});
+window.addEventListener('resize',()=>{applyZoom();renderBoard();});
+$('historyToggle').addEventListener('click',()=>{const p=$('historyPanel'),open=p.classList.toggle('open');$('historyToggle').textContent=open?'Zugverlauf schließen':'Zugverlauf öffnen';});
+document.querySelectorAll('.dir-btn').forEach(b=>b.addEventListener('click',()=>chooseDirection(b.dataset.dir)));
+$('dropMinus').addEventListener('click',()=>{if(pendingDrop&&pendingDrop.count>1){pendingDrop.count--;updateDropEditor();}});
+$('dropPlus').addEventListener('click',()=>{if(pendingDrop&&pendingDrop.count<pendingDrop.max){pendingDrop.count++;updateDropEditor();}});
+$('confirmDrop').addEventListener('click',confirmDrop);$('undoDropBtn').addEventListener('click',undoLastDrop);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&moveDraft){e.preventDefault();cancelMove();return;}if(e.code==='Space'&&!e.repeat&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){e.preventDefault();if(state.phase==='playing'&&!moveDraft&&state.opening===0){selectedKind=selectedKind==='wall'?'flat':'wall';previewCache=null;touchPreviewKey=null;document.querySelectorAll('.piece-visual.ghost').forEach(el=>el.remove());renderControls();say(selectedKind==='wall'?'Mauer ausgewählt.':'Flachstein ausgewählt.');}}});
+// Projected-centre hit-testing avoids 3D child hit-test errors at outer fields (especially 6x6).
+$('boardStage').addEventListener('pointerdown',event=>{lastBoardPointerType=event.pointerType||'mouse';},{passive:true});
+$('boardStage').addEventListener('pointermove',handleBoardPointerMove,{passive:true});
+$('boardStage').addEventListener('pointerleave',handleBoardPointerLeave);
+$('boardStage').addEventListener('click',handleBoardClick);
+// Avoid a touch-only dead end: field input is handled by projected coordinates, not visual SVG layers.
+applyZoom();newGame(4);
+})();
+</script>
+</body>
+</html>
