@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rund um Cusco</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --surface:#fffdf9; --ink:#26282e; --muted:#6b6f76;
+    --line:#dddbd2; --accent:#9a4b2f; --accent-ink:#fffdf9; --soft:#eceae2;
+    --ok:#3f7d54; --shadow:0 1px 3px rgba(30,25,15,.08);
+  }
+  html[data-theme="dark"]{
+    --bg:#15171b; --surface:#1d2025; --ink:#e6e3dd; --muted:#9aa0a8;
+    --line:#33373e; --accent:#d78a5f; --accent-ink:#15171b; --soft:#24272d;
+    --ok:#7fb894; --water:#6f9fb8; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.65;font-size:17px}
+  main{max-width:70ch;margin:0 auto;padding:1.2rem 1.1rem 5rem}
+  header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding:.6rem 1.1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+  header h1{font-size:1rem;margin:0;font-weight:600;flex:1;min-width:10rem}
+  .brand{cursor:pointer;color:var(--accent);text-decoration:none;font-weight:700}
+  button,.chip{font:inherit;font-size:.92rem;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.45rem .85rem;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  button.small{padding:.3rem .6rem;font-size:.82rem}
+  h2{font-size:1.3rem;margin:1.4rem 0 .5rem}
+  h3{font-size:1.03rem;margin:1.2rem 0 .35rem}
+  p{margin:.5rem 0}
+  .muted{color:var(--muted);font-size:.92rem}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;margin:.8rem 0;box-shadow:var(--shadow)}
+  a{color:var(--accent)}
+  .sitetabs{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0}
+  .sitetabs button{border-radius:999px}
+  .sitetabs button.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .readmark{color:var(--ok);margin-left:.25rem}
+  .facts{display:flex;flex-wrap:wrap;gap:.4rem .7rem;margin:.5rem 0}
+  .facts span{background:var(--soft);border-radius:8px;padding:.15rem .55rem;font-size:.85rem}
+  svg{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--line)}
+  details{margin:.8rem 0}
+  summary{cursor:pointer;color:var(--muted)}
+  .sourcebox{font-size:.82rem;color:var(--muted)}
+  .navrow{display:flex;gap:.5rem;flex-wrap:wrap;margin:1.4rem 0 .3rem}
+  .nr{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.6rem;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:.83rem}
+  .ttsbar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:.5rem .9rem;display:none;gap:.45rem;align-items:center;flex-wrap:wrap;z-index:20}
+  .ttsbar.on{display:flex}
+  footer{margin-top:3rem;color:var(--muted);font-size:.82rem}
+  @media(min-width:900px){body{font-size:18px}main{max-width:58rem}}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand">Rund um Cusco</a>
+  <h1>Privater Reiseführer</h1>
+  <button id="themeBtn" class="small">Auto</button>
+</header>
+<main id="app"></main>
+<div class="ttsbar" id="ttsbar">
+  <button id="ttsPause" class="small">Pause</button>
+  <button id="ttsStop" class="small">Stop</button>
+  <button id="ttsPrev" class="small">Wiederholen</button>
+  <span class="muted">Tempo</span>
+  <input type="range" id="ttsRate" min="0.6" max="1.4" step="0.1" value="1" style="width:6rem">
+  <span id="ttsRateVal" class="muted">1.0x</span>
+  <select id="ttsVoice"></select>
+</div>
+<footer>Datenstand: Recherche November 2026. Preise, Öffnungszeiten und Wegesperrungen vor Ort prüfen. Alle Rundgänge sind eigene Vorschläge, keine offiziellen Leitsysteme.</footer>
+<script>
+"use strict";
+
+/* ------------------------------ INHALTE ------------------------------ */
+const SITES=[
+  {
+    id:"tipon",
+    name:"Tipón",
+    alt:"Tipon",
+    meta:["Königsgut & Wasserheiligtum","3.300 bis 3.900 m","23 bis 25 km von Cusco","1,5 bis 2 Std"],
+    intro:[
+      "Willkommen in Tipón (auch Tipon geschrieben), rund 25 Kilometer südöstlich von Cusco im Distrikt Oropesa. Die Anlage liegt auf einem Berghang oberhalb des Huatanay-Tals, vom Eingang auf etwa 3.300 Metern bis hinauf auf fast 3.900 Metern Höhe.",
+      "Tipón ist kein Tempel und keine Festung, sondern ein königliches Landgut der Inka mit einem der besten Bewässerungssysteme der vorspanischen Welt. Eine Quelle am Hang speist Kanäle, Fallstufen und Brunnen, und die zwölf bis dreizehn breiten, geradlinig gebauten Terrassen werden bis heute bewässert: Das System funktioniert mehr als 500 Jahre nach seinem Bau. Seit 1984 ist Tipón Nationaler Archäologischer Park, 2006 wurde die Anlage von der American Society of Civil Engineers als historisches Wasserbauwerk ausgezeichnet. Planen Sie rund 1,5 bis 2 Stunden ein; oben ist es windig und die Sonne ist stark."
+    ],
+    planSvg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400"><rect width="720" height="400" fill="#e9e4d8"/><polygon points="0,0 720,0 720,80 600,25 460,60 320,20 200,70 80,30 0,80" fill="#b9b39e"/><path d="M60,350 C40,250 60,150 130,90" fill="none" stroke="#8a7a66" stroke-width="4" stroke-dasharray="10 6"/><path d="M60,350 L420,385" fill="none" stroke="#8a7a66" stroke-width="4" stroke-dasharray="10 6"/><circle cx="585" cy="55" r="7" fill="#6f9fb8"/><text x="600" y="42" font-size="13" fill="#3b4652">Quelle (Puquio)</text><path d="M585,55 C570,90 545,120 530,140" fill="none" stroke="#6f9fb8" stroke-width="4"/><path d="M530,140 L470,160" fill="none" stroke="#6f9fb8" stroke-width="4" stroke-dasharray="8 5"/><path d="M470,160 L338,160" fill="none" stroke="#6f9fb8" stroke-width="4"/><g fill="#9ba087" stroke="#7d8457" stroke-width="2.5"><rect x="330" y="170" width="280" height="13"/><rect x="330" y="196" width="280" height="13"/><rect x="330" y="222" width="280" height="13"/><rect x="330" y="248" width="280" height="13"/><rect x="330" y="274" width="280" height="13"/></g><g stroke="#6f9fb8" stroke-width="3"><line x1="345" y1="170" x2="345" y2="196"/><line x1="345" y1="222" x2="345" y2="248"/><line x1="345" y1="248" x2="345" y2="274"/></g><ellipse cx="650" cy="195" rx="48" ry="30" fill="#a8967d" stroke="#8e7d64" stroke-width="2"/><text x="615" y="245" font-size="13" fill="#3b4652">Intiwatana</text><polygon points="170,40 138,110 202,110" fill="#8e8871"/><text x="20" y="128" font-size="13" fill="#3b4652">Cruzmoqo</text><g fill="#8a7a66"><rect x="130" y="160" width="60" height="24" rx="3"/><rect x="205" y="150" width="70" height="20" rx="3"/><rect x="150" y="200" width="55" height="22" rx="3"/><rect x="215" y="210" width="65" height="20" rx="3"/><rect x="130" y="240" width="80" height="18" rx="3" fill="#7d8457"/></g><text x="128" y="142" font-size="13" fill="#3b4652">Recintos Reales</text><circle cx="300" cy="300" r="9" fill="#6f9fb8"/><circle cx="340" cy="312" r="9" fill="#6f9fb8"/><text x="200" y="336" font-size="13" fill="#3b4652">Zeremonialbrunnen</text><ellipse cx="380" cy="345" rx="28" ry="15" fill="#8a7a66" stroke="#6f5c4b" stroke-width="2"/><text x="414" y="352" font-size="13" fill="#3b4652">Torreon</text><rect x="112" y="372" width="70" height="16" rx="4" fill="#6f5c4b"/><g font-size="14" font-weight="bold"><circle cx="150" cy="352" r="12" fill="#3b4652"/><text x="150" y="357" fill="#fff" text-anchor="middle">1</text><circle cx="118" cy="172" r="12" fill="#3b4652"/><text x="118" y="177" fill="#fff" text-anchor="middle">2</text><circle cx="278" cy="284" r="12" fill="#3b4652"/><text x="278" y="289" fill="#fff" text-anchor="middle">3</text><circle cx="470" cy="240" r="12" fill="#3b4652"/><text x="470" y="245" fill="#fff" text-anchor="middle">4</text><circle cx="418" cy="372" r="12" fill="#3b4652"/><text x="418" y="377" fill="#fff" text-anchor="middle">5</text><circle cx="608" cy="162" r="12" fill="#3b4652"/><text x="608" y="167" fill="#fff" text-anchor="middle">6</text><circle cx="212" cy="62" r="12" fill="#3b4652"/><text x="212" y="67" fill="#fff" text-anchor="middle">7</text></g><g font-size="18" font-weight="bold" fill="#3b4652"><text x="686" y="24">N</text><polygon points="690,28 684,42 696,42"/></g></svg>',
+    planNote:"Schematische Skizze nach der Sektorenliste von MINCETUR und dem Kulturamt Cusco, nicht maßstäblich, Norden oben. Blau: Quelle und Kanäle, grau gestrichelt: Zufahrts- und Rundweg.",
+    planStations:[
+      ["Eingang und Kontrolle","unten im Südwesten an der Zufahrt, hier gilt das Ticket."],
+      ["Recintos Reales und Gärten","links des Wegs auf halber Höhe, die Gruppe mit den größten Baublöcken des Areals."],
+      ["Zeremonialbrunnen","am Fuß der Terrassen, dort, wo der Hangkanal endet und das Wasser gestuft fällt."],
+      ["Zentralterrassen","in der Bildmitte, die breiten geradlinigen Streifen quer über den Hang."],
+      ["Torreón","südlich der Terrassen, die ovale Bastei mit Rundblick über die Senke."],
+      ["Intiwatana","rechts oben am Terrassenrand, mit dem steinernen Aquädukt des Hauptkanals."],
+      ["Cruzmoqo","der Nordgipfel ganz oben, wichtigster Aussichtspunkt Richtung Cusco und Fundplatz der Petroglyphen."]
+    ],
+    history:[
+      ["Bauzeit und Vorgeschichte","Das Gelände war schon lange vor den Inka besiedelt; Vorläufer sind unter anderen die Ayamarca- und Wari-Kulturen. Die gewaltige Ummauerung von rund sechs Kilometern Länge stammt vermutlich teilweise aus einer frühen Bauphase. Die Blüte beginnt im 15. Jahrhundert: Laut dem Chronisten Garcilaso de la Vega ließ Viracocha Inca Tipón als Residenz für seinen abgesetzten Vater Yahuar Huacac errichten. Ob Pachacútec oder Túpac Yupanqui Erweiterungen bauten, ist Forschungsfrage, kein gesichertes Faktum."],
+      ["Symbolik und Funktion","Wasser hat in der Andenwelt eine doppelte Rolle: Lebensgrundlage und heilige Kraft. Tipón verbindet beides. Die fein gearbeiteten Brunnen am Terrassenrand, die Phaqchas, galten als heilige Orte, das Kanalnetz zur Bewässerung als staatliche Leistung. Die Terrassen erzeugten mehrere Mikroklimata, deshalb wird der Ort auch als landwirtschaftliches Experimentierfeld der Inka gedeutet. Die zwölf Terrassen werden gelegentlich als Symbol der zwölf Monate gelesen, das ist Deutung, kein belegter Bericht."],
+      ["Kolonialzeit und Wandel","Anders als viele Inka-Anlagen wurde Tipón in der spanischen Eroberung kaum zerstört, verlor aber seine höfische Funktion. Das Areal diente der umliegenden Bevölkerung als Weide- und Ackerland, bis archäologische Aufnahme und Restaurierung ab 1966 einsetzten. Meilensteine der Gegenwart: 1984 Nationaler Archäologischer Park, 2006 Auszeichnung durch die amerikanische Ingenieursgesellschaft ASCE, 2012 asphaltierte Zufahrt."]
+    ],
+    stations:[
+      ["Station 1, Eingang und Zufahrt","Willkommen an der Kontrolle von Tipón, dem einzigen Zugang zum Archäologischen Park. Hier gilt das Teil-Ticket des Boleto Turístico, dasselbe wie für Pikillacta und die Museen im Zentrum. Sie stehen im Südwesten der Anlage, auf etwa 3.300 Metern Höhe. Vor Ihnen öffnet sich der Hang, und Sie sehen bereits, was diesen Ort einmalig macht: Terrassen über Terrassen, mit Wasserläufen dazwischen. Der Weg führt Sie zunächst zu den königlichen Wohnbezirken im Westen, dann in Richtung der Terrassen im Osten. Zwei praktische Hinweise: Es gibt kaum Schatten, Sonnen­schutz und Wasser also mitnehmen. Und die Rundstrecke umfasst rund zwei Kilometer in der Höhe, gehen Sie langsam. Nehmen Sie jetzt erst den Blick auf das Ensemble, die Details kommen gleich."],
+      ["Station 2, Königliche Wohnbezirke und Gärten","Vor Ihnen liegen die Königlichen Wohnbezirke, nach der Überlieferung durch Garcilaso de la Vega jener Bau, den Viracocha für seinen Vater Yahuar Huacac errichten ließ. Es ist der bedeutendste und größte Gebäudesektor der Anlage. Schauen Sie auf das Mauerwerk: große, sauber gefügte Blöcke, teils von megalithischer Größe, anders als bei einfachen Wohnhäusern der Inka. Dazu Gärten, Wasserrinnen und Brunnen, die aus unterirdischen Kanälen gespeist werden und teilweise noch Wasser führen. Diese Qualität zeigt, dass hier die höchste Führungsschicht lebte, vermutlich nur zu bestimmten Jahreszeiten oder Zeremonien. Halten Sie Ausschau nach den trapezförmigen Nischen, einem erkennbaren inkanischen Stilmittel, das Sie gleich am Intiwatana wiedersehen."],
+      ["Station 3, Zeremonialbrunnen und Quellfassung","Hier, am unteren Rand der Terrassen, liegt das technische und zeremonielle Zentrum von Tipón: die Quellfassung. Eine natürliche Quelle, auf Quechua puquio genannt, tritt aus dem Berg und speist das gesamte Kanalsystem. Die Inka fassten dieses Wasser in fein behauene Becken, leiteten es in Kanäle, ließen es in Stufen fallen und führten es dann weiter. Nach einer Vermessung zählt der Hauptkomplex rund 34 Kanalabschnitte und 22 Wasserfälle. Das Wasser fällt nicht zufällig, sondern in inszenierten Kaskaden, mit bewusst gestaltetem Geräusch. Die beiden feinst gearbeiteten Brunnen gelten als Zeremonialbrunnen, als heilige Orte, nicht als Viehtränken. In der andinen Vorstellung verbindet Wasser die Welten: Unterwelt, Menschenwelt und Welt der Götter. Bleiben Sie einen Moment stehen und hören Sie zu. Dann geht es hinauf an die Terrassen."],
+      ["Station 4, Die Zentralterrassen","Die zwölf bis dreizehn breiten, geradlinig gebauten Terrassen sind das visuelle Zentrum von Tipón. Ungewöhnlich ist der gerade Verlauf: Andere Terrassenanlagen passen sich der Geländekontur an, diese schneiden konsequent quer über den Hang. Das deutet man als bewusste Gestaltung mit zeremoniellem oder repräsentativem Anspruch, weniger als reine Feldfläche. Die Terrassenwände sind sorgfältig gearbeitet, teilweise aus rötlichem Gestein. Funktional speicherten die Steinwände tagsüber Wärme und gaben sie nachts ab, milderten so das Frostrisiko, und das Kanalnetz erzeugte unterschiedliche Feuchtezonen. Deshalb gilt Tipón als möglicher Experimentierstandort der Inka für Nutzpflanzen. Betreten Sie die Terrassen von der Seite und schauen Sie einmal bergauf und einmal bergab: Sie sehen beides, Kanaltechnik und Landschaftsgestaltung."],
+      ["Station 5, Die ovale Bastei, der Torreón","Am Südende der Terrassen steht ein ovaler Rundbau, sozusagen ein Wächter der Anlage. Von hier schweift der Blick über die gesamte Senke und die Zugangsrouten. Die Funktion ist nicht endgültig geklärt, gedeutet wird der Bau als Wachturm, Aussichts- oder Repräsentationsbau. Die ovale Form ist unter inkanischen Rundbauten verhältnismäßig selten, üblicher sind quadratische oder rechteckige Bauten. Nutzen Sie die Position für einen Orientierungsstopp. Von hier erkennen Sie die Gesamtlogik der Anlage: die Mauer im Umriss, die Terrassengruppe im Zentrum, den Intiwatana oben rechts und im Norden den Cruzmoqo-Gipfel, unser nächstes Ziel. Falls Sie den Cruzmoqo auslassen, ist dies zugleich der schönste Bogen zurück zum Ausgang."],
+      ["Station 6, Intiwatana-Hügel und Stein-Aquädukt","Der Hügel nordöstlich der Terrassen trägt den Namen Intiwatana, zu Deutsch etwa: Ort, an dem die Sonne angebunden wird. Der Begriff taucht an mehreren Inka-Orten auf und verweist auf Sonnenkult oder astronomische Beobachtung; die genaue Funktion in Tipón ist nicht gesichert. Erkennbar sind Gebäude­reste mit trapezförmigen Nischen und Fenster­öffnungen, ein eindeutig hochwertiger Bau. Das eigentliche Highlight ist aber hydraulisch: Hier überquert ein Hauptkanal auf einem rund 60 Meter langen Stein-Aquädukt eine Senke, präzise gebaut und noch teilweise in Betrieb. Das Wasser wurde ehemals aus rund 1,2 Kilometern Entfernung herangeführt, heute nicht mehr aus der Original­quelle, aber das Aquädukt läuft. Von hier haben Sie die beste Ansicht auf die Wasserlinie des ganzen Systems."],
+      ["Station 7, Cruzmoqo, Aussichtspunkt und Petroglyphen","Cruzmoqo bedeutet: Gipfel, auf dem ein Kreuz steht, entsprechend dem Kreuz auf dem Gipfel. Es ist der höchste zugängliche Punkt im Norden des Komplexes. Oben angekommen sehen Sie weit über Cusco und das Umland, bei klarer Luft bis zu den Bergketten der Umgebung. Im oberen Geländeabschnitt fanden Archäologen eine bemerkenswerte Menge an Petroglyphen, eingravierte Fel­zeichen, deren Bedeutung noch nicht abschließend gedeutet ist. Kombiniert mit der exponierten Lage vermutet man hier eine zeremonielle Zone und einen Beobachtungspunkt. Der Aufstieg ist steil und unbefestigt, nur bei trockener Witterung und gutem Schuhwerk. Nehmen Sie sich oben Zeit für den Rückblick. Der Rückweg führt über die Zufahrt oder den historischen Camino Inca unterhalb der Anlage."]
+    ],
+    praktisch:["Ticket: Teil-Ticket Circuito II des Boleto Turístico, gemeinsam mit Pikillacta und Museen.","Anfahrt: Bus von der Avenida La Cultura Richtung Oropesa, ab der Abzweigung Desvío de Tipón mit dem Sammeltaxi direkt zum Eingang.","Beste Zeit: Trockenzeit Mai bis September; kaum Schatten, starke Sonne, also Sonnenschutz und Wasser mitnehmen.","Kombination: klassisches Südtal mit Pikillacta und Andahuaylillas in rund 5 Stunden.","Essen: Rund um die Anlage gibt es Restaurants, Tipón ist bekannt für Chicharrón und Cuy."],
+    sources:["ticketmachupicchu.com: Tipon Archaeological Park","MINCETUR Ficha Nr. 921","Wikipedia (de und en): Tipon","asce.org: Tipon Landmark","hidraulicainca.com"]
+  },
+  {
+    id:"pisac",
+    name:"Pisac",
+    alt:"Pisaq",
+    meta:["Zeremonial- und Agrarkomplex","Ort 2.986 m, Ruinen bis ca. 3.400 m","33 km von Cusco","2,5 bis 3,5 Std"],
+    intro:[
+      "Willkommen in Písac (auch Pisaq geschrieben), rund 33 Kilometer nordöstlich von Cusco am Ostrand des Heiligen Tals. Das Städtchen liegt am Vilcanota-Fluss auf knapp 3.000 Metern; die Ruinen ziehen sich an der Bergkette entlang, die über dem Ort liegt, auf mehr als vier Kilometern Kammlänge.",
+      "Písac verbindet drei Ebenen auf demselben Bergrücken: eine agrarische mit riesigen geschwungenen Terrassen, eine zeremonielle mit dem Tempelsektor am Intiwatana und eine militärische mit der Zitadelle Qallaqasa und einem der größten Inka-Friedhöfe der Region. Planen Sie für die Ruinen rund 2,5 bis 3,5 Stunden ein, für Städtchen und Markt noch einmal ein bis zwei Stunden."
+    ],
+    planSvg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400"><rect width="720" height="400" fill="#e9e4d8"/><polyline points="30,180 140,120 300,90 470,80 660,95" fill="none" stroke="#8a7a66" stroke-width="7"/><g fill="#9ba087" stroke="#7d8457" stroke-width="2.5"><path d="M380,120 C420,180 460,240 500,290 L430,300 C400,250 380,190 350,135 Z"/><path d="M340,130 C370,180 400,235 440,290 L380,300 C350,250 320,190 300,145 Z"/><path d="M300,140 C320,185 350,235 390,290 L340,298 C310,250 280,195 260,155 Z"/></g><text x="470" y="340" font-size="13" fill="#3b4652">Andeneria (Osthang)</text><g fill="#8a7a66" stroke="#6f5c4b" stroke-width="1.5"><rect x="90" y="120" width="34" height="16" rx="2"/><rect x="126" y="106" width="30" height="14" rx="2"/><rect x="70" y="142" width="28" height="13" rx="2"/></g><text x="30" y="98" font-size="13" fill="#3b4652">Qallaqasa (Zitadelle)</text><g fill="#8e7d64" stroke="#6f5c4b" stroke-width="1.5"><rect x="300" y="72" width="40" height="16" rx="3"/><rect x="348" y="60" width="30" height="14" rx="3"/></g><text x="252" y="110" font-size="13" fill="#3b4652">Qanchis Racay</text><g fill="#8e7d64" stroke="#6f5c4b" stroke-width="1.5"><rect x="560" y="80" width="52" height="20" rx="3"/><rect x="600" y="98" width="34" height="16" rx="3"/></g><text x="520" y="52" font-size="13" fill="#3b4652">Intiwatana-Tempel</text><g fill="#6b6154"><rect x="140" y="146" width="8" height="12"/><rect x="152" y="142" width="8" height="12"/><rect x="164" y="138" width="8" height="12"/><rect x="176" y="134" width="8" height="12"/></g><text x="118" y="176" font-size="12" fill="#3b4652">Grabnischen</text><g fill="#c9c2ab" stroke="#b0a883" stroke-width="1"><rect x="150" y="330" width="34" height="22"/><rect x="190" y="336" width="34" height="22"/><rect x="150" y="358" width="34" height="22"/><rect x="190" y="362" width="34" height="22"/></g><text x="240" y="380" font-size="13" fill="#3b4652">Staedtchen Pisac und Markt</text><path d="M60,190 L104,146 L136,132" fill="none" stroke="#b59f7d" stroke-width="5"/><text x="24" y="214" font-size="12" fill="#3b4652">Zugang und Parkplatz (Suedwesten)</text><g font-size="14" font-weight="bold"><circle cx="70" cy="180" r="12" fill="#3b4652"/><text x="70" y="185" fill="#fff" text-anchor="middle">1</text><circle cx="126" cy="112" r="12" fill="#3b4652"/><text x="126" y="117" fill="#fff" text-anchor="middle">2</text><circle cx="350" cy="170" r="12" fill="#3b4652"/><text x="350" y="175" fill="#fff" text-anchor="middle">3</text><circle cx="590" cy="60" r="12" fill="#3b4652"/><text x="590" y="65" fill="#fff" text-anchor="middle">4</text><circle cx="330" cy="52" r="12" fill="#3b4652"/><text x="330" y="57" fill="#fff" text-anchor="middle">5</text><circle cx="240" cy="352" r="12" fill="#3b4652"/><text x="240" y="357" fill="#fff" text-anchor="middle">6</text></g><g font-size="18" font-weight="bold" fill="#3b4652"><text x="686" y="24">N</text><polygon points="690,28 684,42 696,42"/></g></svg>',
+    planNote:"Schematisch, nur relative Lage: Zugang im Südwesten, die Sektoren entlang des Kamms von West nach Ost, der Terrassenfächer am Osthang, unten am Fluss das Städtchen. Einige Wege sind seit 2016 gesperrt, fragen Sie am Eingang nach der offenen Route.",
+    planStations:[
+      ["Zugang und Parkplatz","südwestlich unterhalb des Kamms, Ausgangspunkt des oberen Rundgangs."],
+      ["Qallaqasa","am westlichen Ende des Kamms, die Festungsspitze mit den Grabnischen an ihrer Flanke."],
+      ["Andenería","der riesige geschwungene Terrassenfächer am Osthang unterhalb des Kamms."],
+      ["Intiwatana-Tempelsektor","auf dem höchsten Punkt rechts, also östlich, das zeremoniale Herzstück."],
+      ["Qanchis Racay","auf halbem Weg entlang des Kamms, Wohn- und Versorgungsbauten."],
+      ["Städtchen Písac und Markt","unten am Fluss, der Abstieg endet auf der Plaza."]
+    ],
+    history:[
+      ["Bauzeit","Písac gilt als Bauprojekt der späten Inka-Zeit, vermutlich unter Pachacútec im 15. Jahrhundert. Anders als in Tipón gibt es hier keine Gründungsüberlieferung eines einzelnen Herrschers, sondern ein Ensemble aus Militär-, Kult- und Agrarchitektur, das den Ostrand des Heiligen Tals zum Fluss Vilcanota sichert und repräsentiert. Zwischen dem Städtchen am Fluss und dem oberen Kamm liegen mehr als 500 Höhenmeter."],
+      ["Symbolik und Funktion","Der Name Písac wird häufig mit der Darstellung eines Vogels (Pisaqa, ein Bartvogel) in Verbindung gebracht, aber das ist Deutung, nicht Beleg. Das eigentliche Argument des Ortes sind die Terrassen: Landwirtschaft in extremer Steillage, dazu der Friedhof, der Tempel und das Wasser. Qallaqasa am Westkamm gilt mit hunderten Grabnischen im Fels als eine der größten bekannten Inka-Begräbnisstätten Perus."],
+      ["Kolonialzeit und Wandel","Nach der spanischen Eroberung wurde das alte Písac auf dem Berg aufgegeben; die Bevölkerung zog ins heutige Städtchen am Fluss, das die Spanier mit Kirche und Schachbrettmuster rund um die Plaza anlegten. Markt und Sonntagsmesse sind Nachfahren dieser Umsiedlung; die Ruinen blieben bis ins 20. Jahrhundert Feld- und Weideland."]
+    ],
+    stations:[
+      ["Station 1, Oberer Eingang und Aufstieg","Willkommen am Zugang von Písac, je nachdem, wie Sie anreisen, oben am Parkplatz oder unten am Städtchen. Die absteigende Variante ist die bequemere: Sie fahren bis zum Parkplatz unterhalb des Kamms und starten oben. Sie bewegen sich ab jetzt in fast 3.400 Metern Höhe, also langsam gehen. Halten Sie unterwegs Ausschau auf die Terrassen unterhalb des Weges: Sie folgen keiner Naturform, sondern einem konstruierten Hangmuster, das Wasser gleichmäßig verteilt. Der Zugang gilt mit dem Boleto Turístico, die Kontrollstelle öffnet in der Regel ab 7 Uhr morgens. Nehmen Sie jetzt erst den Blick auf den Kamm von West nach Ost auf, der Rundgang folgt ihm."],
+      ["Station 2, Qallaqasa, die Zitadelle und der Friedhof","Vor Ihnen liegt die westlichste Gebäudegruppe namens Qallaqasa, die als militärische Zitadelle gedeutet wird. Schauen Sie auf die Felswand unter der Gruppe: Dort reihen sich hunderte geschnitzte Grabnischen, der Friedhof von Písac. Die Schätzungen reichen bis zu tausend Bestattungen, eine der größten bekannten Inka-Nekropolen. Die Lage ist Programm: Die Toten lagen hoch oben auf dem Kamm zwischen Himmel und Tal, sichtbar für das ganze Tal. Die meisten Nischen sind leer und geplündert, der größte Teil der Beigaben ist verloren. Bleiben Sie eine Minute stehen und verfolgen Sie mit dem Blick das Band aus Grabnischen den Fels entlang, die Dichte ist ungewöhnlich hoch."],
+      ["Station 3, Die Andenería","Von Qallaqasa aus führt der Weg auf dem Kamm nach Osten, und dann sehen Sie, was Písac auf Fotos ausmacht: die großen Reihen geschwungener, fast perfekt gebogener Terrassen, die sich in Kurven um den Berg legen. Diese Terrassen sind keine Zierde, sondern funktionale Landwirtschaft in extremem Steilhang. Die Mauern stabilisieren, die Stufen speichern Wärme, das Kanalnetz verteilt Wasser von oben. Machen Sie einen Stopp und verfolgen Sie mit dem Blick, wie die Terrassen der Hangkontur folgen. Interessant ist der Kontrast zu Tipón: dort geradlinig und repräsentativ, hier geschwungen und maximal ausgenutzt, jeweils mit dem Innenleben des Hangs."],
+      ["Station 4, Intiwatana, das zeremoniale Herz","Willkommen im Intiwatana-Sektor, dem höchsten und feinst gearbeiteten Bereich von Písac. Der Name Intiwatana, also: Ort, an dem die Sonne angebunden wird, taucht an mehreren Inka-Orten auf und verweist typischerweise auf Sonnenbeobachtung und Zeremonie. Schauen Sie auf das Mauerwerk: hochwertiges, fein gefügtes Mauerwerk, Trapeznischen, in den Fels gearbeitete Plattformen. Die Interpretation als Sonnenheiligtum ist die gängige, aber nicht die einzige: Es gibt hier auch Wohn- und Versorgungsbauten, und die Elemente sind so angeordnet, dass von hier Sichtbeziehungen über die ganze Anlage bestehen. Nehmen Sie sich ein paar Minuten und ordnen Sie von hier oben im Kopf die Stationen, die Sie gerade gesehen haben; der Blick reicht über das gesamte Ensemble und das Heilige Tal."],
+      ["Station 5, Qanchis Racay und Versorgungsbauten","Auf dem Weg entlang des Kamms passiert die Route Gebäudereste, die als Qanchis Racay zusammengefasst werden. Es sind Wohn- und Versorgungsbauten mit einfacherem Mauerwerk, dazu Wasserreservoirs und Nischenanlagen. Hier zeigt sich der Alltag hinter den Zeremonialorten: Wer hier arbeitete, was gelagert wurde, wie Wasser gesammelt und verteilt wurde. Man geht in Písac leicht durch diese Sektoren durch, weil die Intiwatana-Gruppe spektakulärer ist, aber genau dieser Teil erklärt die Stadt am Berg. Eine lang bewohnte Anlage braucht Kult und Versorgung gleichzeitig. Falls Sie den unteren Zugang nehmen, lernen Sie ähnliche Wohnbereiche kennen, die von der Straße aus besser zugänglich sind als der Kamm."],
+      ["Station 6, Abstieg nach Pisac","Der Abstieg ins Städtchen ist Teil des Erlebnisses: Sie laufen an den gebogenen Terrassen vorbei, sehen Písac schon von weitem, die roten Dächer und die Kirche am Platz. Unten angekommen lohnt der Marktrundgang: täglich geöffnet, mit Höhepunkt an Dienstag, Donnerstag und Sonntag, wenn Bewohner aus dem Umland herkommen und ein traditionellerer Markt stattfindet. Wer Zeit hat, bleibt zum Mittagessen und beobachtet, wie sich das heutige Písac als Marktstädtchen vom archäologischen Písac unterscheidet, obwohl beide von derselben Bergkante abhängen. Für den Rückweg nach Cusco fahren Sammeltaxis und Busse regelmäßig, die Fahrt dauert rund 45 Minuten."]
+    ],
+    praktisch:["Ticket: Teil-Ticket Circuito III des Boleto Turístico (Heiliges Tal), gemeinsam mit Ollantaytambo, Chinchero und Moray.","Anfahrt: Sammeltaxi oder Bus von Cusco nach Písac, rund 45 Minuten; vom Städtchen unterhalb der Ruinen verläuft der Aufstieg zu Fuß oder per Taxi zum oberen Parkplatz.","Beste Zeit: früh morgens oder nachmittags; große Reisegruppen kommen meist vormittags.","Wege: Einige Verbindungen sind seit 2016 offiziell gesperrt, am Eingang nach der offenen Route fragen.","Markt: täglich; traditioneller Markt an Dienstag, Donnerstag und Sonntag."],
+    sources:["peru-spirit.com Pisac Ruins Guide","enperu.org Pisac","kadatravel.com Pisac Journal","salastravelperu.com Pisac Guide","chau.pe Pisac"]
+  },
+  {
+    id:"qenko",
+    name:"Qenqo",
+    alt:"Q-enqo, Kenko, Qinqu (Labyrinth)",
+    meta:["Felsheiligtum (Huaca)","ca. 3.580 m","4 km von Cusco","45 bis 60 Min"],
+    intro:[
+      "Willkommen in Qenqo (auf Quechua Q'inqu, auch Kenko geschrieben). Der Name bedeutet Labyrinth oder das Gewundene, und der Name passt: Ein großer Kalksteinfelsen wurde zu einem Heiligtum umgestaltet, mit Tunnel, Kanälen, einem Amphitheater und Sitznischen.",
+      "Qenqo liegt nur vier Kilometer nordöstlich des Cusco-Zentrums im selben archäologischen Park wie Saqsayhuaman, wenige Minuten mit dem Auto, und gehört zu den großen Felsheiligtümern rund um die Inka-Hauptstadt. Der Chronist Bernabé Cobo nennt für einen dieser heiligen Felsen den Namen Patallacta; ob damit Qenqo gemeint ist, bleibt unklar. Planen Sie 45 bis 60 Minuten, mit dem Nebensektor Qenqo Chico eher 90 Minuten."
+    ],
+    planSvg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400"><rect width="720" height="400" fill="#e9e4d8"/><polygon points="300,90 380,68 470,98 520,160 510,232 440,268 360,262 300,218 282,150" fill="#a8967d" stroke="#8e7d64" stroke-width="2.5"/><circle cx="388" cy="100" r="5" fill="#6f9fb8"/><polyline points="388,100 418,116 396,132 424,148" fill="none" stroke="#6f9fb8" stroke-width="3"/><text x="438" y="120" font-size="13" fill="#3b4652">Zickzack-Kanal</text><g stroke="#8e7d64" stroke-width="3"><line x1="468" y1="216" x2="486" y2="222"/><line x1="464" y1="230" x2="484" y2="238"/></g><path d="M400,262 C410,232 420,212 435,198" fill="none" stroke="#3b4652" stroke-width="3" stroke-dasharray="6 5"/><rect x="420" y="172" width="34" height="26" fill="#c9c2ab" stroke="#8e7d64" stroke-width="2"/><rect x="430" y="182" width="16" height="7" fill="#8a7a66"/><text x="500" y="180" font-size="13" fill="#3b4652">Kammer</text><g fill="#8a7a66" stroke="#6f5c4b" stroke-width="1.5"><rect x="238" y="180" width="42" height="17" rx="3"/><rect x="248" y="206" width="30" height="15" rx="3"/></g><text x="188" y="168" font-size="12" fill="#3b4652">Plattformen West</text><path d="M300,272 A95,95 0 0 0 482,272" fill="none" stroke="#7d8457" stroke-width="7"/><g fill="#7d8457"><circle cx="340" cy="292" r="5"/><circle cx="366" cy="304" r="5"/><circle cx="394" cy="308" r="5"/><circle cx="422" cy="304" r="5"/><circle cx="448" cy="292" r="5"/></g><ellipse cx="392" cy="292" rx="14" ry="24" fill="#8e7d64"/><rect x="360" y="316" width="64" height="10" fill="#8a7a66"/><text x="290" y="356" font-size="13" fill="#3b4652">Amphitheater und Monolith</text><path d="M120,350 L220,322 L296,294 L380,282" fill="none" stroke="#b59f7d" stroke-width="5"/><path d="M520,262 L560,286 L600,300" fill="none" stroke="#b59f7d" stroke-width="5" stroke-dasharray="4 6"/><polygon points="562,300 612,290 642,322 600,348 558,330" fill="#a8967d" stroke="#8e7d64" stroke-width="2"/><text x="520" y="372" font-size="13" fill="#3b4652">Qenqo Chico</text><rect x="98" y="342" width="56" height="15" rx="4" fill="#6f5c4b"/><g font-size="14" font-weight="bold"><circle cx="128" cy="326" r="12" fill="#3b4652"/><text x="128" y="331" fill="#fff" text-anchor="middle">1</text><circle cx="352" cy="306" r="12" fill="#3b4652"/><text x="352" y="311" fill="#fff" text-anchor="middle">2</text><circle cx="398" cy="82" r="12" fill="#3b4652"/><text x="398" y="87" fill="#fff" text-anchor="middle">3</text><circle cx="466" cy="212" r="12" fill="#3b4652"/><text x="466" y="217" fill="#fff" text-anchor="middle">4</text><circle cx="254" cy="196" r="12" fill="#3b4652"/><text x="254" y="201" fill="#fff" text-anchor="middle">5</text><circle cx="592" cy="308" r="12" fill="#3b4652"/><text x="592" y="313" fill="#fff" text-anchor="middle">6</text></g><g font-size="18" font-weight="bold" fill="#3b4652"><text x="686" y="24">N</text><polygon points="690,28 684,42 696,42"/></g></svg>',
+    planNote:"Schematisch, nicht maßstäblich. Der Hauptfelsen mit Zickzack-Kanal in der Mitte, das Amphitheater mit Monolith südlich vorgelagert, der Tunnel an der Südflanke des Felsens, Plattformen an der Westkante, Qenqo Chico südöstlich jenseits des Wegs.",
+    planStations:[
+      ["Eingang","an der Straße südwestlich, Kontrollpunkt des Saqsayhuaman-Tickets."],
+      ["Amphitheater mit Monolith","direkt vor dem Südfuß des Felsens, die Halbkreiswand mit neunzehn Nischen, in der Mitte der aufgerichtete Stein."],
+      ["Zickzack-Kanal","oben auf dem Felsen, über Stufen erreichbar, beginnend in einem kleinen Becken, ablaufend in zwei Zweigen."],
+      ["Tunnel und Kammer","im Felsinneren, der Zugang liegt an der Südostseite, innen glatte Plattformen und Nischen."],
+      ["Plattformen Westkante","an der westlichen Felsenkante, fein geglättete Zeremonialfläche."],
+      ["Qenqo Chico","südöstlich jenseits des Wegs, kleiner Nebensektor, meist ohne vollen Aufstieg."]
+    ],
+    history:[
+      ["Bauzeit und Einordnung","Die erhaltene Bauphase von Qenqo gehört vor allem in das 15. und frühe 16. Jahrhundert, in die Zeit, in der Cusco ein expandierendes Reich regierte. Der Name kommt vom Quechua-Wort Q'inqu, Labyrinth oder das Gewundene. Der Ort ist kein eigenständiges Monument, sondern Teil einer heiligen Landschaft: ein Felsheiligtum, eine Huaca, im Netzwerk um Saqsayhuaman und die Inka-Hauptstadt. Der kleinere Nebensektor Qenqo Chico liegt südöstlich des Hauptheiligtums."],
+      ["Symbolik und Funktion","Der Zickzack-Kanal in der Felsmitte beginnt in einem kleinen Becken und teilt sich in zwei Zweige; man deutet ihn als Rinne für Flüssigkeitsopfer, etwa Chicha, das Maisbier, das in andinen Zeremonien zentral ist. Die unterirdische Kammer mit glatten Plattformen wird als Opfer- oder Einbalsamierungsraum gedeutet. Beides sind Interpretationen, keine belegten Berichte. Der Chronist Bernabé Cobo verband einen Felsheiligtum-Komplex bei Cusco mit dem Namen Patallacta; ob das Qenqo ist, bleibt offen. Sicher ist: Der Ort war Teil der heiligen Geometrie um die Inka-Hauptstadt."],
+      ["Kolonialzeit und Wandel","Die spanische Eroberung griff die Huacas gezielt an. Der Monolith von Qenqo trägt sichtbare Zerstörungsspuren, vermutlich aus der Kolonialzeit. Die häufige Identifikation als Pumadarstellung ist deshalb eine moderne Rekonstruktion, keine vollständig erhaltene Skulptur. Was blieb, sind die Bearbeitungen des Kalksteins selbst."]
+    ],
+    stations:[
+      ["Station 1, Eingang und Weg","Willkommen in Qenqo, dem Felslabyrinth oberhalb von Cusco, auf rund 3.580 Metern Höhe, wenige Kilometer vom Zentrum. Der Zugang liegt an der Straße, Kontrollstelle mit derselben Ticketklasse wie Saqsayhuaman. Nehmen Sie sich einen Moment und schauen Sie auf den großen Felsen: Er ist kein reiner Naturstein mehr. Stufen, Kanäle und Nischen sind direkt in den Kalkstein geschnitten, und genau das ist das Wesen dieses Ortes. Der Rundgang führt Sie erst zum Amphitheater, dann hinauf auf den Felsen zum Zickzack-Kanal, danach in den Tunnel an der Südseite und schließlich an die Westkante; wer Zeit hat, geht noch weiter zu Qenqo Chico."],
+      ["Station 2, Amphitheater und Monolith","Vor Ihnen liegt die halbkreisförmige Mauerwand, meist Amphitheater genannt, in deren Mitte ein Monolith steht. Zur Vorsicht bei der Deutung: Nach heutiger Forschungsansicht war hier keine Theaterspielstätte, sondern ein Versammlungs- oder Zeremonialbereich. An der Innenseite der Halbkreiswand zählt man 19 Nischen, dazu eine Treppe. Der Monolith auf dem Fundament ist stark beschädigt, vermutlich gezielt in der Kolonialzeit zerstört; die oft gezeichnete Deutung als Pumadarstellung ist deshalb eine moderne Rekonstruktion. Achtung: Das Mauerwerk ist fein gefügt, bitte nicht berühren oder besteigen. Nehmen Sie sich einen Moment und schauen Sie, wie sich die beiden Materialien unterscheiden: Naturfels und bearbeiteter Stein direkt nebeneinander."],
+      ["Station 3, Zickzack-Kanal und Felskopf","Von der Amphitheaterseite steigen Sie über Stufen an der Südflanke auf den Felskopf hinauf. Oben liegt das auffälligste Detail von Qenqo: ein in den Stein geritzter Kanal, der in einem kleinen Becken beginnt, im Zickzack mehrfach nach unten läuft und sich in zwei Äste teilt. Gedeutet wird die Rinne als Kanal für Flüssigkeitsopfer, vermutlich Chicha, aber niemand weiß heute sicher, welche Substanz dort floss. Beachten Sie auch die aus dem Fels gearbeiteten Treppen und kleinen Vertiefungen; sie werden in der Forschung mit zeremoniellen oder astronomischen Funktionen in Verbindung gebracht. Nehmen Sie sich eine Minute und schauen Sie, wie der Kanal den Felsen diagonal kreuzt: Diese Lage zeigt, wie genau die Inka gestalteten. Wichtig: Die Kanten sind scharf und rutschig, gehen Sie langsam."],
+      ["Station 4, Tunnel und Kammer","Nun zum eigentlichen Labyrinth. An der Südseite des Felsens führt ein schmaler Durchgang, ein künstlich gearbeiteter Tunnel, ins Innere des Kalksteins. Drinnen ist es dunkel, kalt und leise. Sie stehen in einer Kammer mit geglätteten Flächen, Nischen und Stufen, die aus dem Fels herausgearbeitet sind. Die glatten Oberflächen kontrastieren deutlich mit dem rohen Naturstein des Tunnels selbst. Was hier geschah, wissen wir nicht: von Opferkammer bis Einbalsamierungsraum reichen die Interpretationen, belegt ist nichts davon. Fakt ist: Die Inka haben hier einen engen, privaten, dunklen Ritualraum geschaffen, das Gegenteil des offenen Amphitheaters unten. Die Kammer gehört zu den meistbesuchten Zonen, zur Hauptstauzeit müssen Sie mit Wartezeit rechnen; nehmen Sie Ihre kleine Lampe mit, das ist wichtig."],
+      ["Station 5, Plattformen an der Westkante","An der Westkante des Felsens liegen Altarflächen, Treppenabsätze und Nischenanlagen mit sehr präziser Bearbeitung. Schauen Sie die Stufen und die glatten, gestuften Flächen an: Hier zeigt sich wieder, wie die Inka mit Naturformen arbeiteten, sie formten sie, ohne sie zu kaschieren. Der Kontrast zwischen offenem Versammlungsraum unten und geschlossenen Räumen hier oben gibt der Anlage ihr Doppelgesicht: Es gibt einen Platz für die Gruppe und Zonen für wenige Teilnehmer. Vergleichen Sie ruhig mit den Bauelementen am Nachbarhügel Saqsayhuaman, dort das monumentale Mauerwerk, hier die Felsarbeit: Beides zusammen ergibt das Spektrum der inkanischen Bauweise."],
+      ["Station 6, Qenqo Chico, der Nebensektor","Südöstlich des Hauptfelsens, jenseits der Straße, liegt Qenqo Chico, der kleinere Nebensektor des Heiligtums. Hier finden Sie weitere bearbeitete Felsen, Stützmauern und Terrassen, die das Heiligtum über den Besucherkern hinaus erweitern. Weil die Wege teils unbeschildert und steil sind und die Zeit oft knapp bemessen ist, überspringen die meisten Besucher diesen Teil. Wenn Sie genug Zeit und gute Schuhe haben, lohnt er sich: Qenqo Chico zeigt weniger das Fertiggestellte, sondern viel besser, wie stark das Heiligtum im Gelände verankert war: Die Bearbeitungen verteilen sich auf die ganze Hügelkette, nicht auf einen einzigen Felsen. Danach geht es zurück zur Straße oder weiter hinauf nach Saqsayhuaman."]
+    ],
+    praktisch:["Ticket: Teil-Ticket Circuito I des Boleto Turístico, gemeinsam mit Saqsayhuaman, Puca Pucara und Tambomachay.","Anfahrt: zu Fuß vom Zentrum durch San Blas, mit dem Taxi oder als Teil einer Halbtagestour.","Beste Zeit: morgens; am Nachmittag besseres Licht, aber mehr Andrang am Tunnel.","Achtung: Der Tunnel ist eng, dunkel und nicht barrierefrei, bei Gruppen kann Wartezeit entstehen.","Zeitbedarf: 45 bis 60 Minuten für das Hauptheiligtum, mit Qenqo Chico eher 90 Minuten."],
+    sources:["lostruinsoftheamericas.com Qenqo Guide","MINCETUR Ficha Nr. 906","Wikipedia (de): Qenko","cuscoperu.com Qenqo"]
+  },
+  {
+    id:"pikillacta",
+    name:"Pikillacta",
+    alt:"Piqaillacta, Piquillacta",
+    meta:["Wari-Stadt","ca. 3.250 m","30 km von Cusco","1,5 bis 2 Std"],
+    intro:[
+      "Willkommen in Pikillacta (auch Piquillacta geschrieben), rund 30 Kilometer südöstlich von Cusco im Becken von Lucre auf etwa 3.250 Metern Höhe. Der Name wird meist mit Flohstadt übersetzt, vermutlich eine späte, ironische Wortschöpfung; die ursprüngliche Bezeichnung der Stadt ist nicht erhalten.",
+      "Pikillacta ist etwas ganz anderes als die Inka-Orte im Umkreis: eine vor-inkanische, planmäßig gebaute Stadt der Wari-Kultur, eines Volks, das aus der Region Ayacucho kam und ab dem 7. Jahrhundert in das Tal von Cusco expandierte. Die Bauweise unterscheidet sich deutlich: gerade Straßen, ein Raster aus rechteckigen Sektoren, Mauern bis zu zwölf Metern Höhe. Der zentrale Block misst rund 745 mal 630 Meter, man zählt über 700 Gebäude, rund 200 Canchas und mehr als 500 Speicherbauten. Rechnen Sie mit 1,5 bis 2 Stunden."
+    ],
+    planSvg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420"><rect width="720" height="420" fill="#e9e4d8"/><polygon points="0,0 200,0 120,55 0,90" fill="#b9b39e"/><text x="12" y="78" font-size="13" fill="#3b4652">Apu Piquillacta</text><rect x="140" y="72" width="440" height="258" fill="#cfc7b0" stroke="#8e7d64" stroke-width="5"/><g stroke="#8e7d64" stroke-width="2" fill="none"><line x1="360" y1="72" x2="360" y2="330"/><line x1="140" y1="200" x2="580" y2="200"/></g><g fill="#c2baa2" stroke="#8e7d64" stroke-width="1.5"><rect x="170" y="225" width="45" height="35"/><rect x="225" y="225" width="45" height="35"/><rect x="170" y="270" width="45" height="35"/><rect x="225" y="270" width="45" height="35"/></g><text x="168" y="322" font-size="12" fill="#3b4652">Sektor 1, Raster</text><g fill="#b6ac8f" stroke="#6f5c4b" stroke-width="2"><rect x="180" y="95" width="70" height="28"/><rect x="265" y="115" width="55" height="22"/><rect x="185" y="140" width="60" height="25"/></g><text x="168" y="80" font-size="12" fill="#3b4652">Sektor 2, Hochmauern</text><rect x="400" y="245" width="130" height="62" fill="#d8d0b8" stroke="#8e7d64" stroke-width="2"/><text x="405" y="322" font-size="12" fill="#3b4652">Sektor 3, Platz</text><rect x="330" y="185" width="46" height="32" fill="#7d8457" stroke="#5f6a44" stroke-width="2"/><circle cx="353" cy="201" r="6" fill="#e9e4d8"/><text x="326" y="178" font-size="12" fill="#3b4652">Patio del Jardin</text><rect x="170" y="38" width="96" height="18" rx="4" fill="#6f5c4b"/><text x="272" y="52" font-size="12" fill="#3b4652">Eingang und Mirador</text><g fill="#8a7a66"><circle cx="280" cy="368" r="9"/><circle cx="306" cy="374" r="9"/><circle cx="332" cy="366" r="9"/><circle cx="294" cy="388" r="9"/><circle cx="320" cy="390" r="9"/></g><text x="238" y="412" font-size="12" fill="#3b4652">Rundbauten</text><ellipse cx="590" cy="352" rx="68" ry="30" fill="#6f9fb8" opacity="0.85"/><text x="545" y="367" font-size="12" fill="#1f2d38">Laguna Lucre</text><polygon points="628,300 690,300 659,262" fill="#8e8871"/><text x="600" y="292" font-size="12" fill="#3b4652">Muyu Orco</text><path d="M248,72 L248,140 L330,185 L353,201" fill="none" stroke="#b59f7d" stroke-width="7" opacity="0.85"/><g font-size="14" font-weight="bold"><circle cx="215" cy="40" r="12" fill="#3b4652"/><text x="215" y="45" fill="#fff" text-anchor="middle">1</text><circle cx="248" cy="104" r="12" fill="#3b4652"/><text x="248" y="109" fill="#fff" text-anchor="middle">2</text><circle cx="298" cy="126" r="12" fill="#3b4652"/><text x="298" y="131" fill="#fff" text-anchor="middle">3</text><circle cx="353" cy="172" r="12" fill="#3b4652"/><text x="353" y="177" fill="#fff" text-anchor="middle">4</text><circle cx="465" cy="276" r="12" fill="#3b4652"/><text x="465" y="281" fill="#fff" text-anchor="middle">5</text><circle cx="300" cy="352" r="12" fill="#3b4652"/><text x="300" y="357" fill="#fff" text-anchor="middle">6</text><circle cx="560" cy="316" r="12" fill="#3b4652"/><text x="560" y="321" fill="#fff" text-anchor="middle">7</text></g><g font-size="18" font-weight="bold" fill="#3b4652"><text x="686" y="24">N</text><polygon points="690,28 684,42 696,42"/></g></svg>',
+    planNote:"Schematisch, nicht maßstäblich. Die Gesamtanlage ist rechteckig; der Eingang mit Aussichtsplattform liegt am Nordrand, die Lagune von Lucre südöstlich davor. Die vier Stadtsektoren sind als Quadranten angedeutet.",
+    planStations:[
+      ["Eingang und Mirador","auf der Plattform am Nordrand, der beste Punkt, um die gesamte Struktur auf einen Blick zu sehen."],
+      ["Hauptstraße und Hochmauern","durch das Nordtor abwärts, der Hauptweg zwischen den bis zu zwölf Meter hohen Mauern."],
+      ["Wohnkomplexe, Sektor 1","links, also westlich, das Raster aus quadratischen Einheiten."],
+      ["Patio del Jardín","im Zentrum des Blocks, der kleine Hof, an dem die gefalteten Tonfiguren gefunden wurden."],
+      ["Zentraler Platz, Sektor 3","rechts südöstlich, die große offene Fläche für Versammlung oder Zeremonie."],
+      ["Rundbauten","außerhalb der Südmauer, die Gruppe kreisrunder Speicherbauten."],
+      ["Laguna Lucre und Muyu Orco","südöstlich vor der Stadt, der See mit dem zeremoniellen Hügel gegenüber."]
+    ],
+    history:[
+      ["Bauzeit und Funktion","Pikillacta wurde von der Wari-Kultur gebaut und war grob zwischen 550 und 1100 nach Christus in Gebrauch; es gilt als eine der größten vor-inkanischen Städte der Region Cusco. Die Wari stammten ursprünglich aus der Gegend von Ayacucho und bauten ab dem 7. Jahrhundert Verwaltungszentren in diesem Tal. Die genaue Funktion ist in der Forschung umstritten: Manche sehen ein Administrativ- oder Militärzentrum, manche eine zeremonielle Anlage, manche eine Stadt für zeitweilige Bewohner."],
+      ["Symbolik und städtische Logik","Pikillacta ist vor allem ein urbaner Plan: geradlinige Sektoren, gerade Straßen, kontrollierte Zugänge, Hallen mit Nischenreihen. Gebaut wurde mit unbehauenen Steinen und Lehm, und trotzdem entsteht ein Gefühl strenger Ordnung, das heute noch nachvollziehbar ist. Bemerkenswert sind auch die Opferfunde: In Gruben gefundene, teils gefaltete Figuren und sorgfältig verschlossene Behälter sprechen von kontrollierter religiöser Praxis. Knochenfunde sind selten, aber es gibt Schädel mit künstlicher Deformation und einen dokumentierten, verheilten Trepanationsfall."],
+      ["Endphase und Wandel","Die Wari-Präsenz endete in einer Phase des geordneten Abzugs, spätestens um 1100 nach Christus. Türen wurden versiegelt, wertvolle Gegenstände entfernt, einige Opfergruben sorgfältig verschlossen. Danach folgte ein großes Feuer: Mindestens zwei Sektoren brannten, die Ursache ist ungeklärt. Eine gesicherte Inka-Phase ist nicht belegt; der moderne Name Pikillacta ist eine späte Schöpfung, keine historische Bezeichnung."]
+    ],
+    stations:[
+      ["Station 1, Eingang und Mirador","Willkommen in Pikillacta, der großen Wari-Stadt auf 3.250 Metern Höhe. Starten Sie zweckmäßig auf der Aussichtsplattform am nördlichen Rand: Von hier sehen Sie die gesamte planmäßige Stadtanlage auf einen Blick, ein Raster aus Gebäuden, umgeben von Mauern. Auffällig zuerst: Die Stadt ist in vier Sektoren unterteilt, und die Mauern sind hoch. Die Anlage wirkt fast wie eine Festung, und genau das hat frühere Forscher dazu verleitet, hier eine Burg zu lesen. Der zentrale Block misst rund 745 mal 630 Meter, eine bewusst monumentale Gesamtplanung, keine gewachsene Stadt. Von hier führt der Weg durch das Nordtor hinein."],
+      ["Station 2, Hauptstraße und Hochmauern","Nun betreten Sie die Stadt zu Fuß über ihre Hauptachse. Der Eindruck ist auffällig: lange gerade Wände aus Stein und Lehm, dazu enge Straßen, kaum Fenster, wiederholte Eingänge. Da die Wari mit unbehauenen Steinen und Lehm ohne Mörtel bauten, hängt der Zustand davon ab, wo Sie stehen; manche Wände stehen noch bis zu zwölf Meter hoch. Der Eindruck von Festigkeit ist gewollt. Vielleicht fragen Sie sich, wie viele Menschen hier wirklich lebten. Diese Frage ist in der Forschung offen; viele Gebäude waren vermutlich Speicher oder wurden nur zeitweise genutzt. Bleiben Sie noch einen Moment in dieser Straße, sie ist die prägnanteste Achse der Stadt."],
+      ["Station 3, Wohnkomplexe im Raster, Sektor 1","Links westlich des Hauptwegs liegt ein Raster aus quadratischen Einheiten, wie kleine Stadtviertel, in sich systematisch. Gut erkennbar sind innere Unterteilungen, meist Höfe umgeben von langen schmalen Räumen, manchmal mit freistehenden Hallen in der Mitte. Diese Bauweise erinnert daran, die Frage nach der Bevölkerung mit Vorsicht zu stellen: Manche Einheiten waren Wohnraum, andere Speicher, und viele wurden nie fertiggestellt. Sektor 1 ist strukturell stark verfallen, die Mauern stehen niedrig, aber genau diese Ruhe zeigt die streng gegliederte Planung noch besser als die restaurierten Bereiche. Stellen Sie sich vor, wie solche Räume im Alltag funktionierten: Zugang, Vorrat, Arbeitsfläche, Hof."],
+      ["Station 4, Patio del Jardín, der Gartenhof","Nun zum auffälligsten Einzelfund von Pikillacta. In diesem kleinen Hof, dem sogenannten Patio del Jardín, stießen Archäologen auf eine außergewöhnliche Fundsituation: unter der Erde sorgfältig niedergelegte Tonfiguren, einige davon absichtlich gefaltet oder gebrochen, bevor sie vergraben wurden. Die Funde werden mit andinen Kulttraditionen in Verbindung gebracht, also mit Vorstellungen von heiligen Gegenständen und rituellen Niederlegungen, die politische Macht stützen können. Wem die Figuren galten und welchen Zweck sie genau hatten, ist nicht sicher. Bleiben Sie kurz stehen und schauen Sie sich den kleinen Hof an; die Fundsituation wurde hier im Inneren dokumentiert und ist eines der bekanntesten Details der Anlage."],
+      ["Station 5, Zentraler Platz, Sektor 3","Willkommen im offenen Zentrum von Pikillacta. Die Fläche gehört zu Sektor 3 und enthielt zwölf rechteckige Gebäude, an den gegenüberliegenden Enden gruppiert. Diese Anordnung deutet man als Versammlungs- oder Zeremonialplatz, auf dem man große Gemeinschaften versammeln konnte. Die zeremonielle Aktivität des Platzes wird durch Funde von Schalen und Geschirr gestützt, die auf Feste mit Chicha hindeuten. Schauen Sie sich die Umgebung an: Hier entsteht das Gefühl städtischer Planung am besten, durch gerade Sichtachsen zwischen den Gebäudegruppen. Vielleicht fällt Ihnen auf, dass viele Bauten im Sektor unfertig wirken; die Unfertigkeit großer Teile der Anlage ist eines der ungelösten Rätsel von Pikillacta."],
+      ["Station 6, Rundbauten außerhalb der Südmauer","Außerhalb der Südmauer liegt eine Gruppe kreisrunder Bauten, die meist als Speicher, sogenannte Colcas, interpretiert werden. Das Kulturamt Cusco zählt für die Gesamtanlage mehr als 500 solcher Lagergebäude. Sie sind ein wichtiges Argument dafür, Pikillacta als Verwaltungszentrum zu deuten: Eine solche Menge an Lagerkapazität macht nur Sinn, wenn organisierte Strukturen Nahrung und Material sammeln und verteilen. Die Rundform ist in der Wari-Bauweise eher selten, ihre genaue Funktion ist nicht geklärt. Danach geht es zum letzten Punkt des Rundgangs, dem Ausblick auf die Lagune."],
+      ["Station 7, Blick auf Laguna Lucre und Muyu Orco","Zum Abschluss ein weiter Ausblick: Richtung Südosten sehen Sie die Lagune von Lucre und am gegenüberliegenden Ufer den zeremoniellen Hügel Muyu Orco. Diese Lagebindung ist kein Zufall: Pikillacta nutzt die Position zwischen Berghang, Wasser und zeremoniellen Hügeln, praktisch und vermutlich auch kosmologisch. Der Blick zeigt auch, dass die Stadt in ihrem Umfeld nicht isoliert war, sondern in ein Netz von Siedlungen und Zeremonialorten eingebunden. Wenn Sie den Ausblick aufgenommen haben, können Sie zum Eingang zurücklaufen. Der Rundgang hat rund 90 Minuten gedauert; denken Sie an die Höhe von 3.250 Metern."]
+    ],
+    praktisch:["Ticket: Teil-Ticket Circuito II des Boleto Turístico, gemeinsam mit Tipón und Museen.","Anfahrt: Colectivo oder Taxi Richtung Urcos, Ausstieg bei Huacarpay oder Lucre, danach kurze Strecke zum Parkplatz.","Kombination: Tipón und Andahuaylillas in einem Halbtagesrundgang.","Wichtig: kaum Schatten, viel Wind, starke Sonnenstrahlung in 3.250 Metern.","Anlage: die Rundbauten liegen außerhalb der Mauer, etwas abseits des Hauptwegs."],
+    sources:["culturacusco.gob.pe Pikillaqta","ancient-history-sites.com Piquillacta","urbipedia.org Piquillacta","machupicchuviajesperu.com Pikillacta"]
+  },
+  {
+    id:"templodelauna",
+    name:"Templo de la Luna",
+    alt:"Amaru Marka Wasi, Salunpunku",
+    meta:["Felsheiligtum mit Hoehlen","ca. 3.580 m","2 bis 3 km vom Zentrum","30 bis 45 Min"],
+    intro:[
+      "Willkommen am Templo de la Luna, auf Quechua oft Amaru Marka Wasi genannt, dazu weitere Namen wie Salunniyuq oder Laqo. Der kleine Felsheiligtums­komplex liegt am Hang nordöstlich über San Blas, zwischen dem Stadtviertel unten und der Höhenroute Richtung Saqsayhuaman und Qenqo oben.",
+      "Hier haben die Inka keinen Tempel gebaut, sondern einen Felsen umgearbeitet: Höhlen, Altäre, Throne und Stufen wurden direkt aus dem Fels geschnitten. Die Anlage ist eng mit dem Mondkult und Fruchtbarkeitsriten verbunden, daher der spanische Name. Der Zugang ist meist frei, und der Ort ist trotzdem oft leer. Rechnen Sie mit 30 bis 45 Minuten auf dem Gelände plus den Aufstieg."
+    ],
+    planSvg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400"><rect width="720" height="400" fill="#e9e4d8"/><polygon points="0,240 720,90 720,60 0,200" fill="#b9b39e"/><g fill="#c9c2ab" stroke="#b0a883" stroke-width="1"><rect x="60" y="300" width="40" height="26"/><rect x="110" y="306" width="40" height="26"/><rect x="60" y="336" width="40" height="26"/><rect x="110" y="342" width="40" height="26"/></g><text x="58" y="388" font-size="13" fill="#3b4652">San Blas und Cusco unten</text><path d="M140,310 C200,268 250,232 320,196 C360,176 380,166 400,158" fill="none" stroke="#8a7a66" stroke-width="4" stroke-dasharray="6 6"/><path d="M500,120 C560,96 610,84 660,74" fill="none" stroke="#8a7a66" stroke-width="4" stroke-dasharray="6 6"/><text x="540" y="66" font-size="13" fill="#3b4652">Richtung Qenqo</text><polygon points="300,144 430,112 502,150 522,208 452,248 340,232 288,196" fill="#a8967d" stroke="#8e7d64" stroke-width="2.5"/><path d="M372,164 L452,164 L452,206 Q412,232 372,206 Z" fill="#6b6154"/><rect x="404" y="188" width="26" height="9" fill="#8a7a66"/><text x="478" y="198" font-size="13" fill="#1f2d38">Hoehle</text><polygon points="410,140 420,140 417,164 413,164" fill="#e9e4d8"/><g fill="#6b6154"><rect x="330" y="196" width="10" height="14"/><rect x="346" y="200" width="10" height="14"/><rect x="300" y="192" width="10" height="14"/></g><g fill="#8e7d64" stroke="#6f5c4b" stroke-width="1.5"><rect x="465" y="214" width="32" height="9"/><rect x="470" y="223" width="22" height="9"/><rect x="475" y="232" width="12" height="9"/></g><text x="502" y="244" font-size="13" fill="#3b4652">Throne</text><polygon points="548,236 612,222 646,252 606,282 552,268" fill="#a8967d" stroke="#8e7d64" stroke-width="2"/><path d="M522,208 L560,244" fill="none" stroke="#3b4652" stroke-width="3" stroke-dasharray="6 5"/><text x="560" y="302" font-size="13" fill="#3b4652">Nebenfelsen, Stollen</text><path d="M300,124 L210,180" fill="none" stroke="#3b4652" stroke-width="2" stroke-dasharray="4 5"/><text x="130" y="172" font-size="13" fill="#3b4652">Blick auf Cusco</text><g font-size="14" font-weight="bold"><circle cx="212" cy="268" r="12" fill="#3b4652"/><text x="212" y="273" fill="#fff" text-anchor="middle">1</text><circle cx="312" cy="188" r="12" fill="#3b4652"/><text x="312" y="193" fill="#fff" text-anchor="middle">2</text><circle cx="484" cy="228" r="12" fill="#3b4652"/><text x="484" y="233" fill="#fff" text-anchor="middle">3</text><circle cx="414" cy="176" r="12" fill="#3b4652"/><text x="414" y="181" fill="#fff" text-anchor="middle">4</text><circle cx="540" cy="244" r="12" fill="#3b4652"/><text x="540" y="249" fill="#fff" text-anchor="middle">5</text><circle cx="268" cy="168" r="12" fill="#3b4652"/><text x="268" y="173" fill="#fff" text-anchor="middle">6</text></g><g font-size="18" font-weight="bold" fill="#3b4652"><text x="686" y="24">N</text><polygon points="690,28 684,42 696,42"/></g></svg>',
+    planNote:"Schematisch, nicht maßstäblich. Der Hauptfelsen mit Höhle in der Mitte, Nebenfelsen südöstlich, Wegverbindung von San Blas hinauf und weiter Richtung Qenqo.",
+    planStations:[
+      ["Aufstiegsweg","vom Rand von San Blas an der Hangkante hinauf, auf dem historischen Pfad Richtung Nordosten."],
+      ["Nischenfassade","an der Südwestfront des Hauptfelsens, die in den Fels geritzte Nischenreihe."],
+      ["Thronsteine","an der Ostkante des Hauptfelsens, die gestuften Blöcke mit Blick über den Hang."],
+      ["Höhle mit Altartisch","im Zentrum des Hauptfelsens, der Zugang ist ein enger, tunnelförmiger Gang, innen der Steinblock als Altar."],
+      ["Nebenfelsen mit Stollen","wenige Meter südöstlich, über den Felspfad erreichbar."],
+      ["Aussichtspunkt","an der Nordwestkante des Hangs, der Rückblick nach Cusco über alle Dächer."]
+    ],
+    history:[
+      ["Bauzeit und Deutung","Der Templo de la Luna gehört in die Blütephase des Reiches, vermutlich in das 15. Jahrhundert zur Zeit von Pachacútec. Nach einer Lesart der Quechua-Überlieferung gilt der Standort als möglicher Wohnsitz von Amaru Yupanqui, dem ältesten Sohn von Pachacútec. Eine andere Deutung hebt auf die rituelle Funktion ab: die Höhle als Symbol für Gebärmutter, Fruchtbarkeitsriten, Mondbeobachtung durch Mama Killa. Beide Lesarten sind Rekonstruktionen; mit einer gesicherten Beweislage ist keines von beiden."],
+      ["Symbolik und Funktion","Wie alle Felsheiligtümer rund um Cusco gehört auch dieser Ort zur Klasse der Huacas: Einzelne Natursteine und ihre Bearbeitung werden selbst zu religiösen Elementen. Die Inka formten hier keine Architektur über dem Fels, sondern arbeiteten direkt im Stein. Die Nischenfassade, die Höhle mit dem Altartisch, die Thronsteine und der Aussichtspunkt folgen einer altandinen Logik: Licht und Schatten, Höhle und Horizont, Wasser und Mondphasen werden zu einem kompakten Ensemble gebündelt."],
+      ["Kolonialzeit und Gegenwart","Anders als die großen Inka-Anlagen stand der Templo de la Luna nie im Zentrum kolonialer Aufmerksamkeit und blieb von systematischer Zerstörung weitgehend verschont. Heute ist er ein beliebter Ort für spirituelle Kleingruppen und wird seit einigen Jahren besser bekannt als leiser Nachbar der stark besuchten Höhenroute Saqsayhuaman-Qenqo."]
+    ],
+    stations:[
+      ["Station 1, Der Aufstieg","Willkommen am Templo de la Luna, dem kleinen Felsheiligtum oberhalb von San Blas. Der klassische Zugang ist der Aufstieg zu Fuß: vom Rand von San Blas die Hügel hinauf, vorbei an steilen, teils unbeschilderten Wegen. Es ist nicht weit, aber der Anstieg ist zäh, und Cusco liegt hoch: Gehen Sie langsam, besonders am ersten Tag. Alternativ fährt ein Taxi aus dem Zentrum, dessen Fahrer den Ort unter seinem spanischen Namen kennt. Praktisch vorab: Das Gelände gehört zu denselben Hügeln wie Saqsayhuaman und Qenqo und lässt sich auf einem gemeinsamen Bogen gut mit ihnen verbinden. Nehmen Sie unbedingt eine kleine Lampe mit, die Höhlen im Inneren sind dunkel, und planen Sie Wasser ein, der Anstieg zehrt."],
+      ["Station 2, Nischenfassade, der Altaraufsatz","Vor Ihnen steht die filigranste Fläche des Geländes: die Südwestfront des Hauptfelsens mit mehreren Reihen von Nischen, die direkt in den Fels geritzt sind. Man nennt sie El Retablo, den Altaraufsatz. Diese Nischen dienten vermutlich dem Abstellen heiliger Objekte oder Opfergaben, und zu bestimmten Tageszeiten fällt Licht durch obere Öffnungen und trifft auf die Nischen, was besonders stimmungsvoll wirkt. Es lohnt sich, langsam an der Fassade entlangzulaufen und die Nischenmuster zu vergleichen: Sie variieren in Größe und Anordnung. Beachten Sie: Hier steht kein Mauerwerk, sondern bearbeiteter Fels. Bleiben Sie ruhig und beobachten Sie, wie das Licht an dieser Seite wandert."],
+      ["Station 3, Die Thronsteine","An der Ostkante des Hauptfelsens stehen zwei gestufte Steinblöcke, meist als Throne gedeutet. Ob hier tatsächlich ein Herrscher saß, wissen wir nicht; alternative Deutungen reichen von Beobachtungsstellen über zeremonielle Auftritte bis zu rein symbolischen Anlagen. Die Bearbeitung ist präzise: steile Stufen, glatte Sitzebenen, und der Blick darüber geht weit über den Hang Richtung Cusco. Halten Sie kurz inne und schauen Sie zurück über die Dächer hinunter: Das ist genau die Perspektive, die einen Ort ausmacht, der hoch auf einem Hang mit Blick auf die Stadt liegt. Die Sitzebene liegt etwas höher als die Nischenfassade, und die direkte Verbindung zwischen beiden ist gut zu erkennen."],
+      ["Station 4, Die Höhle mit dem Altartisch","Nun ins Zentrum: In den Hauptfelsen führt ein enger, tunnelförmiger Gang in eine Höhle, die meist als Cueva Sagrada bezeichnet wird. Drinnen steht ein Steinblock als Altar, die Wände sind mit Nischen durchsetzt, und zu bestimmten Stunden fällt Licht durch Öffnungen oben im Stein. Die Höhle wird oft mit dem Mondkult und Fruchtbarkeitsriten in Verbindung gebracht, aber eine gesicherte Funktion ist nicht belegt. Nehmen Sie sich einen Moment, halten Sie die Lampe eingeschaltet, schauen Sie, wie die Strukturen zusammenpassen, und beobachten Sie den Schall in der dunklen Höhle. Die Atmosphäre hier ist deutlich anders als draußen."],
+      ["Station 5, Der Nebenfelsen mit dem Stollen","Ein paar Meter südöstlich liegt ein zweiter, kleinerer Felsen mit eigenen Öffnungen und einem Felsstollen. Manche Wege hier sind eng und unübersichtlich; ohne Führer sollte man nicht in unbekannte Gänge hineingehen, die sogenannten Chincanas im Cuscoer Bereich können tiefer und verwickelter sein, als sie von außen erscheinen. Interessant ist der Vergleich: Der Nebenfelsen zeigt dieselbe Logik wie der Hauptfelsen, Nischen, Plattformniveaus, eine geschlossene Kammer, nur in kleinerer Ausführung. So entsteht der Eindruck, das Ganze sei ein System, nicht ein Einzelfelsen: ein Heiligtum aus mehreren Felsen, verteilt über den Hang. Damit haben Sie praktisch alles Wichtige gesehen."],
+      ["Station 6, Aussichtspunkt Richtung Cusco","Zum Abschluss noch einmal zur Aussichtskante im Nordwesten: Von hier reicht der Blick über die gesamte Stadt bis ins Umland. Es ist der beste Punkt, um die Anlage einzuordnen: San Blas unten an der Hangkante, der Felskomplex auf halber Höhe, die Route weiter hinauf Richtung Qenqo und Saqsayhuaman. Wenn Sie dort weiterlaufen wollen, führt der Pfad von hier in Richtung der Höhenstraße weiter. Die Sonne ist stark, der Anstieg kostet Energie: Falls Sie zurück nach San Blas gehen, planen Sie genug Pausen ein, bevor die letzte Wegstrecke durch die Gassen beginnt."]
+    ],
+    praktisch:["Kosten: meist frei, Kontrollpraxis wechselhaft, bitte vor Ort prüfen.","Anfahrt: zu Fuß vom Rand von San Blas aus, alternativ Taxi vom Zentrum.","Beste Zeit: früh am Morgen oder spät am Nachmittag, dann ist das Licht in den Höhlen am besten.","Ausrüstung: kleine Taschenlampe, gutes Schuhwerk, Wasser.","Kombination: ideal mit Qenqo und Saqsayhuaman am selben Hangtag."],
+    sources:["buktrip.com Templo de la Luna","viajandox.com Templo de la Luna","marvelousperu.com Templo de la Luna","wamanadventures.com Amaru Marcahuasi"]
+  }
+];
+
+/* Palccoyo und Pallay Poncho folgen gleich hier, Ergänzung in derselben Liste */
+const SITES2=[
+  {
+    id:"palccoyo",
+    name:"Palccoyo",
+    alt:"Palcoyo, Regenbogenberg lite",
+    meta:["Geologisches Naturspektakel","Aussichtspunkt~ 4.900 m","140 km von Cusco (3 bis 3,5 Std)","leicht, 45 bis 90 Min"],
+    intro:[
+      "Willkommen in Palccoyo (auch Palcoyo geschrieben), einer Gruppe von drei regenbogenfarbenen Bergkämmen im Distrikt Checacupe, Provinz Canchis, rund 140 Kilometer südöstlich von Cusco. Die Fahrt dauert etwa 3 bis 3,5 Stunden, ein Teil der letzten Strecke ist Schotterstraße.",
+      "Palccoyo ist die ruhigere, leichter begehbare Alternative zu Vinicunca, dem berühmten Regenbogenberg: Statt eines gestreiften Gipfels am Ende eines steilen Aufstiegs sehen Sie hier drei gestreifte Kämme, dazu einen Steinwald und den Blick ins rote Tal, alles auf einer bequemen Schleife von zwei bis vier Kilometern mit nur rund 170 Höhenmetern Auf und Ab. Der höchste Punkt liegt bei rund 4.900 Metern, und genau die Höhe ist das eigentliche Schwierigkeitsniveau dieser Tour, nicht die Wegstrecke. Rechnen Sie mit 45 bis 90 Minuten reiner Wanderzeit."
+    ],
+    planSvg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360"><rect width="720" height="360" fill="#e9e4d8"/><polygon points="0,120 180,60 360,110 540,50 720,100 720,30 500,20 300,50 120,20 0,50" fill="#b9b39e"/><g opacity="0.9"><polygon points="120,140 160,90 200,140" fill="#b5674d"/><polygon points="128,140 136,116 168,116 172,140" fill="#d19e4f"/><polygon points="136,140 142,126 158,126 164,140" fill="#7f9c62"/></g><g opacity="0.9"><polygon points="300,170 350,110 400,170" fill="#b5674d"/><polygon points="310,170 320,140 360,140 372,170" fill="#d19e4f"/><polygon points="320,170 330,150 368,150 378,170" fill="#7f9c62"/></g><g opacity="0.9"><polygon points="500,160 540,100 580,160" fill="#b5674d"/><polygon points="508,160 518,130 558,130 566,160" fill="#d19e4f"/><polygon points="518,160 526,142 564,142 572,160" fill="#7f9c62"/></g><text x="104" y="172" font-size="12" fill="#3b4652">Berg 1</text><text x="300" y="200" font-size="12" fill="#3b4652">Berg 2, Hauptkamm</text><text x="492" y="188" font-size="12" fill="#3b4652">Berg 3</text><g fill="#8a7a66" stroke="#6f5c4b" stroke-width="1.5"><rect x="440" y="230" width="14" height="26"/><rect x="460" y="222" width="12" height="34"/><rect x="478" y="234" width="14" height="22"/><rect x="498" y="226" width="12" height="30"/></g><text x="430" y="286" font-size="12" fill="#3b4652">Bosque de Piedras</text><polygon points="0,210 120,190 220,220 200,290 0,300" fill="#c47a5a" opacity="0.5"/><text x="12" y="322" font-size="12" fill="#3b4652">Valle Rojo</text><rect x="80" y="196" width="70" height="16" rx="4" fill="#6f5c4b"/><text x="70" y="182" font-size="12" fill="#3b4652">Parkplatz</text><path d="M120,200 L170,178 L250,196 L330,206 L350,196" fill="none" stroke="#b59f7d" stroke-width="5"/><path d="M350,196 L420,240 L470,250" fill="none" stroke="#b59f7d" stroke-width="5" stroke-dasharray="4 6"/><g font-size="14" font-weight="bold"><circle cx="118" cy="188" r="12" fill="#3b4652"/><text x="118" y="193" fill="#fff" text-anchor="middle">1</text><circle cx="252" cy="192" r="12" fill="#3b4652"/><text x="252" y="197" fill="#fff" text-anchor="middle">2</text><circle cx="352" cy="188" r="12" fill="#3b4652"/><text x="352" y="193" fill="#fff" text-anchor="middle">3</text><circle cx="470" cy="246" r="12" fill="#3b4652"/><text x="470" y="251" fill="#fff" text-anchor="middle">4</text><circle cx="180" cy="160" r="12" fill="#3b4652"/><text x="180" y="165" fill="#fff" text-anchor="middle">5</text></g><g font-size="18" font-weight="bold" fill="#3b4652"><text x="686" y="24">N</text><polygon points="690,28 684,42 696,42"/></g></svg>',
+    planNote:"Schematisch, nicht maßstäblich. Drei farbig gestreifte Kämme im Norden, der Weg als Schleife vom Parkplatz aus, der Steinwald südlich, der Blick ins rote Tal westlich.",
+    planStations:[
+      ["Parkplatz und Trailhead","am Ende der Schotterstraße bei der Ansiedlung Palccoyo, Startpunkt der Rundtour."],
+      ["Berg 1","die erste farbig gestreifte Wand links am Weg, nach wenigen Minuten erreicht."],
+      ["Panoramablick auf die drei Kämme","auf halber Höhe der Schleife, der klassische Fotopunkt."],
+      ["Steinwald, Bosque de Piedras","südlich abzweigend, die Gruppe freistehender Felsnadeln."],
+      ["Aussicht ins Valle Rojo","auf dem Rückweg nach Westen, Blick in das rote Tal."]
+    ],
+    history:[
+      ["Geologische Entstehung","Die Farben von Palccoyo sind Minerale, keine Farbe: Eisenverbindungen unterschiedlichen Oxidationsgrads für Rot und Ocker, Kupferverbindungen für Grün, Schwefelverbindungen für Gelb. Die Schichten sind viele Millionen Jahre alt; Hebung und Erosion haben sie als gestreifte Hänge an die Oberfläche gebracht. Das Material ist vergleichsweise weich und erodiert weiter, nach starken Regenfällen kann sich die Kammlinie verändern, es ist also naturgemäß instabil."],
+      ["Kulturelle Einordnung","Palccoyo liegt im Gebiet des Apu Ausangate, eines der heiligsten Berge der Region, dem traditionell Fruchtbarkeit, Wetter und Wohlergehen zugeschrieben werden. Der Zugang wird von der lokalen Bevölkerung organisiert. Viele dort verstehen die gestreiften Kämme nicht nur als Sehenswürdigkeit, sondern als heiligen Ort, und entsprechend wird um Respekt gebeten."],
+      ["Tourismus und Gegenwart","Die Kämme wurden erst seit Ende der 2010er Jahre touristisch entdeckt, als die ruhigere Alternative zu Vinicunca. Seither ist die Infrastruktur einfacher geworden: kleine Parkflächen, klare Wanderpfade, lokale Führer. Unverändert bleibt die eigentliche Herausforderung, die Höhe: Sie bewegen sich nahe an 4.900 Metern, und die Belastung ist mit der Vinicunca-Tour vergleichbar, obwohl der Weg fast flach ist."]
+    ],
+    stations:[
+      ["Station 1, Trailhead und Ansiedlung Palccoyo","Willkommen am Ausgangspunkt der Schleife. Die letzten Kilometer bis hierher sind meist Schotterweg, bei Regen müssen Sie mit langsamer Fahrt rechnen. Vor Ort wird in der Regel ein zugelassener Führer je Gruppe verlangt; das hängt von der lokalen Ordnung ab, klären Sie es vorab. Der Einstieg liegt auf etwa 4.300 bis 4.600 Metern, und daran hängt die wichtigste Sicherheitsregel dieser Tour: Der Weg ist leicht, aber die Höhe ist hart. Gehen Sie langsam, trinken Sie, und verstehen Sie Kopfschmerzen oder Übelkeit als Warnzeichen des Körpers, nicht als persönliche Schwäche. Nehmen Sie genug Wasser mit, es gibt unterwegs nichts zu kaufen."],
+      ["Station 2, Erste Farbigkeit, Berg 1","Nach wenigen Minuten leichter Wanderung erscheint links vor Ihnen der erste gestreifte Kamm, und er ist die beste Einführung in das, was Palccoyo ausmacht: Mineralfarben in Bändern über die Hangfläche. Auffällig ist der Unterschied zu Vinicunca: Hier weniger ein einzelner Gipfel, sondern eine Fortsetzung der Farben entlang der ganzen Kammlinie. Beachten Sie die Kontraste: rötliche Töne, gelbe Bänder und grüne Streifen wechseln über dem Hang. Bleiben Sie kurz stehen und schauen Sie, wie sich die Bänder von weitem zu einem Ganzen fügen, bevor Sie weiterlaufen. Das ist die Stimmung, die später alle drei Kämme zusammen zeigen werden."],
+      ["Station 3, Panoramablick auf die drei Kämme","Auf halber Höhe der Schleife kommen Sie an einem Aussichtspunkt vorbei, von dem aus alle drei farbigen Kämme gleichzeitig zu sehen sind, der klassische Fotografiepunkt von Palccoyo. Der Blick gliedert sich so: Der mittlere Kamm ist am intensivsten gestreift, links und rechts stehen die beiden flacheren Nachbarkämme, dazwischen weite, helle Hochlandflächen. Nehmen Sie sich hier bewusst Zeit, denn dieser Punkt zeigt am besten, was Palccoyo von Vinicunca unterscheidet: nicht ein einzelner Gipfel, sondern eine ganze Kammgruppe mit mehreren Blickwinkeln. Wer fotografieren will, probiert am besten beide Richtungen, denn die Farben wirken bei tief stehender Sonne am intensivsten."],
+      ["Station 4, Steinwald, Bosque de Piedras","Von der Panoramalinie zweigt der Weg nach rechts südlich in den Steinwald ab. Hier stehen freistehende Felsnadeln und Pilzformationen, vermutlich Überreste der Erosion, bei der das weiche Material abgetragen wurde und der widerstandsfähigere Fels stehen blieb. Der Weg hierher ist der längste Umweg der Schleife, aber die Stille und der Kontrast zu den Farbkämmen lohnen sich. Wichtig bleibt die Höhe: Sie bewegen sich nahe an 4.900 Metern, viele Besucher fühlen sich hier zum ersten Mal unruhig oder benommen. Falls das passiert, umkehren und zurück zum Parkplatz: Auf dieser Höhe gibt es keinen Schatten und keine schnelle medizinische Versorgung."],
+      ["Station 5, Aussicht ins Valle Rojo","Auf dem Rückweg nach Westen öffnet sich der Blick in das rote Tal, das Valle Rojo, mit seinen intensiv roten Hängen, das fast ausschließlich mit Vinicunca assoziiert wird, obwohl Sie hier einen ebenso guten Blick haben. Von hier sehen Sie die ganze Farbpalette von Palccoyo noch einmal im Rückblick: gestreifte Kämme, rotes Tal, Steinwald unter Ihnen. Praktisch: Wind kommt hier oft quer rein, und die Temperatur sinkt dann rasch, die warme Jacke sollte also bereit sein. Danach geht es gemütlich zurück zum Parkplatz und meistens zur Weiterfahrt; das Mittagessen gibt es entweder in Checacupe oder auf dem Rückweg nach Cusco, denn die Anfahrt ist oft anstrengender als die Wanderung selbst."],
+    ],
+    praktisch:["Anfahrt: rund 140 km von Cusco, 3 bis 3,5 Stunden pro Richtung, Teilstück Schotterstraße.","Höhe: Trailhead ca. 4.300 bis 4.600 m, Panoramapunkt nahe 4.900 m.","Organisation: lizenzierter Führer meist Pflicht, vorab klären; Eintritt vor Ort, Kleingeld mitbringen.","Tempo: langsam gehen, der Weg ist leicht, die Höhe nicht; Koka-Tee hilft vielen gegen Höhenbeschwerden.","Beste Zeit: Mai bis Oktober (Trockenzeit), nachts und früh kalt, Schnee möglich.","Ausrüstung: Sonnencreme, Sonnenbrille, Jacke, Wasser, Snacks, Kleingeld für Eintritt und WC."],
+    sources:["palccoyo.com","andeanmoments.com Palcoyo","andeanmagictravel.com Palcoyo","amarujourneyperu.com Palccoyo","peru-spirit.com Palccoyo Guide"]
+  },
+  {
+    id:"pallayponcho",
+    name:"Pallay Poncho",
+    alt:"Pallay Punchu, Apu Taqllo",
+    meta:["Farbiger Kammmberg, Schlucht­kante","Vom Trailhead 4.575 m bis ca. 4.790 m","ca. 190 km von Cusco, 4 Std","45 bis 60 Min Aufstieg"],
+    intro:[
+      "Willkommen unterhalb von Pallay Poncho, in Fachquellen häufiger Pallay Punchu geschrieben, auf Quechua etwa „Geweberand“ beziehungsweise „gewebter Poncho“. Der farbig gestreifte Gebirgskamm liegt im Distrikt Layo, Provinz Canas, rund 190 Kilometer südlich von Cusco, in gerader Sichtlinie über der Lagune Singrenacocha, meist Langui-Layo genannt.",
+      "Was Pallay Poncho von den anderen farbigen Bergen unterscheidet, ist die Richtung der Streifen: Sie laufen vertikal, jeder Streifen zieht als scharfe Felsfinne in die Höhe. Der Wanderstart liegt bei etwa 4.575 Metern, der Hauptaussichtspunkt wird nach rund 45 bis 60 Minuten Aufstieg erreicht, die höchsten Kammpartien werden mit knapp 4.790 Metern angegeben. Der Zugang wird von der Gemeinde Layo organisiert, der Eintritt liegt üblicherweise bei rund 10 Soles. Wichtig: Der Kamm ist teilweise exponiert, also gutes Schuhwerk und ein stabiles Wetterfenster voraussetzen."
+    ],
+    planSvg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360"><rect width="720" height="360" fill="#e9e4d8"/><g stroke="#8a7a66" stroke-width="5" fill="none"><path d="M60,90 C130,60 210,50 300,52 C400,55 500,45 600,60 C640,66 680,76 700,88"/></g><g stroke-width="3" stroke="#b5674d"><line x1="100" y1="88" x2="100" y2="30"/><line x1="130" y1="84" x2="130" y2="26"/><line x1="160" y1="80" x2="160" y2="24"/><line x1="190" y1="78" x2="190" y2="24"/><line x1="220" y1="76" x2="220" y2="22"/><line x1="250" y1="75" x2="250" y2="20"/><line x1="280" y1="74" x2="280" y2="20"/><line x1="310" y1="74" x2="310" y2="20"/><line x1="340" y1="74" x2="340" y2="20"/><line x1="370" y1="74" x2="370" y2="20"/><line x1="400" y1="72" x2="400" y2="18"/><line x1="430" y1="70" x2="430" y2="18"/><line x1="460" y1="68" x2="460" y2="16"/><line x1="490" y1="66" x2="490" y2="16"/><line x1="520" y1="64" x2="520" y2="16"/><line x1="550" y1="62" x2="550" y2="18"/><line x1="580" y1="62" x2="580" y2="20"/><line x1="610" y1="64" x2="610" y2="22"/><line x1="640" y1="66" x2="640" y2="26"/><line x1="670" y1="70" x2="670" y2="30"/></g><text x="120" y="112" font-size="13" fill="#3b4652">Kamm mit vertikalen Farbfins</text><polygon points="60,230 180,210 300,222 420,214 540,226 640,220 700,236 700,360 40,360" fill="#6f9fb8" opacity="0.75"/><text x="380" y="330" font-size="13" fill="#1f2d38">Lagune Singrenacocha (Langui-Layo)</text><path d="M140,300 L210,240 L230,210 L300,170 L320,120 L360,96" fill="none" stroke="#b59f7d" stroke-width="5"/><text x="60" y="322" font-size="12" fill="#3b4652">Trailhead Gemeinde Layo</text><circle cx="140" cy="300" r="9" fill="#6f5c4b"/><g font-size="14" font-weight="bold"><circle cx="142" cy="300" r="12" fill="#3b4652"/><text x="142" y="305" fill="#fff" text-anchor="middle">1</text><circle cx="212" cy="242" r="12" fill="#3b4652"/><text x="212" y="247" fill="#fff" text-anchor="middle">2</text><circle cx="332" cy="166" r="12" fill="#3b4652"/><text x="332" y="171" fill="#fff" text-anchor="middle">3</text><circle cx="470" cy="82" r="12" fill="#3b4652"/><text x="470" y="87" fill="#fff" text-anchor="middle">4</text><circle cx="600" cy="240" r="12" fill="#3b4652"/><text x="600" y="245" fill="#fff" text-anchor="middle">5</text></g><g font-size="18" font-weight="bold" fill="#3b4652"><text x="686" y="24">N</text><polygon points="690,28 684,42 696,42"/></g></svg>',
+    planNote:"Schematisch, nicht maßstäblich. Der Kamm mit den vertikalen Farbfinnen läuft quer oben, die Lagune zieht sich unten hindurch, der Aufstiegsweg zickzackt vom Trailhead bei Layo nach oben.",
+    planStations:[
+      ["Trailhead beim Dorf Layo","am Ende der Dorfstraße, Startpunkt mit Anmeldung und Einzahlung der rund 10 Soles."],
+      ["Aufstieg über die Kammflanke","im Zickzack nach oben, hinter dem ersten Abschnitt öffnet der Blick zur Lagune."],
+      ["Haupt-Mirador am Kamm","nach 45 bis 60 Minuten Aufstieg, der klassische Blickpunkt über Kamm und See."],
+      ["Kammwandern zwischen den Finnen","auf dem Grat, zwischen scharfen Felszinnen, schrittweise und bei Wind vorsichtig."],
+      ["Abstieg mit Blick auf die Lagune","auf dem Rückweg, unten das breite dunkelblaue Seeufer."]
+    ],
+    history:[
+      ["Name und Geologie","Der Name Pallay Punchu kommt aus der Textilwelt: ein gewebtes Muster, wie es auf einem gestreiften Poncho aussieht. Die Farbbänder sind Mineralschichten; durch Hebung und Erosion stehen sie hier aufgerichtet. Deshalb laufen die Streifen vertikal, anders als bei Vinicunca oder Palccoyo, wo sie fast horizontal liegen. Das Material ist großteils sedimentär mit Eisen- und Kupferoxiden, die rote, violette und ockerfarbene Töne erzeugen."],
+      ["Kulturelle Einbettung","Der Kamm trägt in der lokalen Tradition den Namen Apu Taqllo und wird wie ein Berggott behandelt. Er gehört zur Gruppe der regionalen Apus, die in der Provinz Canas mit Heiligkeit, Wetter und Ernte verbunden sind. Die Ufer der Lagune Singrenacocha werden von lokalen Bewohnern als zeremoniell relevant verstanden. Touristisch ist der Ort erst seit den 2020er Jahren auf Betreiben der Gemeinde Layo zugänglich; der Zutritt läuft über eine einfache Anmeldung direkt vor Ort."],
+      ["Gegenwart","Im Mai 2026 wurde Pallay Punchu vom Reisemagazin National Geographic Viajes zu den sechs spektakulärsten Farbbergen der Welt gezählt. Eine systematische wissenschaftliche Forschung fehlt bislang fast völlig: Es gibt kaum verlässliche Zahlen zu Erosion, Besucherzahlen oder Auswirkungen. Der Ort ist jung; im direkten Vergleich mit Vinicunca, das stark besucht und gut untersucht ist, liegt hier noch eine Lücke."],
+    ],
+    stations:[
+      ["Station 1, Trailhead beim Dorf Layo","Willkommen am Startpunkt des Aufstiegs zum Kamm von Pallay Poncho. Wie Sie sehen, ist hier noch alles sehr direkt von der Gemeinde Layo organisiert; rechnen Sie mit rund 10 Soles Eintritt, der Betrag kann sich ohne Vorankündigung ändern. Was Sie zuerst bemerken, ist die Höhe: Wir stehen auf etwa 4.575 Metern, fast 1.400 Meter über Cusco, also deutlich dünnere Luft als in der Stadt. Nehmen Sie sich hier bewusst Zeit, trinken Sie etwas, und beobachten Sie, ob die Atmung normal bleibt. Der Blick fällt schon von hier auf den Kamm, die farbigen Felsen sind vom Trailhead aus direkt zu erkennen."],
+      ["Station 2, Aufstieg über die Kammflanke","Der Weg steigt im Zickzack über die Flanke an. Rechnen Sie mit rund 200 Höhenmetern, kein langer Weg, aber mit der Höhe ist er anstrengender, als die Distanz vermuten lässt. Bereits im ersten Drittel öffnet sich der Blick zur Lagune im Tal, gut zur Orientierung, falls Wolken die Sicht behindern. Achtung: Bei feuchter Witterung kann die Flanke rutschig werden, weil hier oft eine dünne Erdschicht auf Gestein liegt. Also wandern Sie mit ganzer Fußsohle, nicht auf der Kante, und bleiben Sie erkennbar auf der Route. Wer anders als in der Gruppe geht, sollte Rückweg und Sammelpunkt vorher abmachen."],
+      ["Station 3, Hauptmirador am Kamm","Nach 45 bis 60 Minuten Aufstieg erreichen Sie den Hauptaussichtspunkt am Kamm, das eigentliche Highlight der Tour. Von hier öffnet sich der Blick auf die gesamte Kammlinie: die vertikalen Farbfinnen scharf nebeneinander, dazwischen die Felskanten, und unten die dunkelblaue Lagune Singrenacocha. Der Aussichtspunkt ist exponiert, also Windjacke anziehen statt in den Rucksack packen. Nehmen Sie sich hier mindestens zehn Minuten: Der Blick braucht Zeit, um sich zu ordnen, und die Fotos gelingen am besten, wenn die Sonne nicht mehr mittagshoch steht. Falls Sie weiter zum Kammwandern aufbrechen, hier beginnt es."],
+      ["Station 4, Kammwandern zwischen den Finnen","Wer genug Zeit und gutes Wetter hat, kann ein Stück auf dem Kamm wandern, zwischen den scharfen Felszinnen, die hier wie eigenständige Finnen stehen. Aber bleiben wir bei den Fakten: Der Kamm ist exponiert, der Untergrund oft scharfkantig und locker, und bei Wind oder Nässe wird es schnell gefährlich. Genau daran scheiden sich die Reiseberichte: Für manche Besucher ist der Kammspaziergang das Highlight der Tour, für andere ein Risiko, das sich nicht lohnt. Also: auf dem erkennbaren Pfad bleiben, einzeln nacheinander gehen und umkehren, sobald der Untergrund feucht ist. Vom Hauptmirador aus ist der Blick fast genauso gut, nur ohne den riskanten Teil."],
+      ["Station 5, Abstieg und Blick auf die Lagune","Der Abstieg folgt meist demselben Weg zurück zum Trailhead bei Layo. Auf dem Rückweg lohnt noch einmal der Blick auf die Lagune Singrenacocha, die als breiter, dunkelblauer See unter dem Kammmassiv liegt. Wichtig für die Planung: Die Fahrt nach Cusco dauert noch einmal rund vier Stunden. Auf der Strecke liegen mit Raqchi und Checacupe zwei sehenswerte Pausenpunkte, ein Wari-Tempel beziehungsweise eine Kolonialkirche, gut für einen Zwischenstopp. Falls Sie früh gestartet sind, reicht die Zeit meist für einen davon, bevor es am späten Nachmittag durchs Tal zurückgeht."]
+    ],
+    praktisch:["Anfahrt: rund 190 km von Cusco, etwa 4 Stunden pro Richtung, meist als Ganztagestour mit Fahrer.","Eintritt: rund 10 Soles, gezahlt bei der Gemeinde Layo; Betrag ohne Gewähr, vor Ort prüfen.","Beste Zeit: Trockenzeit Mai bis November; am Morgen oft frostig kalt.","Ausrüstung: gutes Schuhwerk, Windjacke, Wasser, Sonnenschutz; auf dem Kamm ist es windig.","Vorsicht: kurzer, aber exponierter Aufstieg in über 4.500 Metern Höhe; am ersten Tag nach der Ankunft in Cusco besser nicht machen."],
+    sources:["terraquechuaperu.com Pallay Punchu Guide 2026","andeanmoments.com Pallay Punchu","pumadventures.com Pallay Punchu","planetodysseys.com Pallay Punchu"]
+  },
+  {
+    id:"machupicchu",
+    name:"Machu Picchu",
+    alt:"Llaqta, Weltkulturerbe",
+    historyLabel:"Wann, für wen, wie",
+    meta:["Inkastadt, UNESCO-Welterbe","2.430 m","Tagestrip oder 2 Tage","3 Circuits, 10 Routen (2026)"],
+    intro:[
+      "Machu Picchu schließt diese Sammlung bewusst als eigenes Kapitel ab: kein Lageplan, keine Stationen, sondern die Fragen rund um den Besuch selbst. Ihre Vorgabe, keine anspruchsvollen Kartenbeigaben zu reproduzieren, gilt hier gerade deshalb, weil der offizielle Ablauf heute weit stärker reglementiert ist als bei allen anderen Orten in dieser App.",
+      "Kurz zum Ist-Stand (Recherche November 2026): Seit Juni 2024 verkauft das Kulturministerium Eintritt nur noch in festen Circuits mit fester Route und fester Einlasszeit, drei Circuits mit insgesamt zehn Routen. 60 bis 90 Minuten Vorlesezeit aus diesem Kapitel sind kein Ersatz für die Zeit vor Ort: rechnen Sie realistisch mit rund drei Stunden für die klassische Route, mit Huayna Picchu entsprechend mehr."
+    ],
+    history:[
+      ["Option A, zwei Tage, der ruhige Weg","Tag 1: morgens Pisac (Markt und Ruinen, Teil des Boleto Turístico), nachmittags die Festung Ollantaytambo, Übernachtung dort auf rund 2.800 Metern. Vorteil: kurzer Weg zum Bahnsteig am nächsten Morgen, und Sie übernachten tiefer als in Cusco. Tag 2: früh mit der Bahn nach Aguas Calientes, Bus oder Aufstieg zur Llaqta, nachmittags zurück. Diese Variante verträgt sich mit dem Rhythmus der sieben Orte in dieser App und ist die erste Empfehlung, wenn die Zeit reicht."],
+      ["Option B, Tagestrip von Cusco","Abfahrt in der Nacht beziehungsweise gegen 4 Uhr, mit Fahrzeug nach Ollantaytambo, rund 1,5 Stunden Bahn nach Aguas Calientes, 25 Minuten Bus hinauf, rund drei Stunden auf dem Plateau, am späten Nachmittag gleicher Weg zurück in die Stadt. Machbar, aber lang und voll, und es braucht Tickets, die in der Hochsaison Wochen bis Monate vorher ausverkauft sind. Wenn nur ein Tag möglich ist: frühestmögliche Einlasszeit wählen, dann sind die ersten zwei Stunden deutlich entspannter."],
+      ["Option C, Inka-Trail und Sonderfälle","Der klassische Inca Trail ist ein separates, reguliertes Permit mit fester Laufzeit und schließt eine Visite der Llaqta ein; die Regeln für das Wegenetz wurden 2026 erneut angepasst (Resolución 000333-2026-MC). Für Träger, Gruppen und Pricing gelten eigene Bestimmungen. Wer ohne Permit reist, kommt über die Hidroeléctrica-Route nach Aguas Calientes, eine lange, günstige Variante entlang der Gleise, nur mit Zeit und Kondition. All das gehört nicht mehr in eine Kurzempfehlung: Prüfen Sie vor der Buchung die offiziellen Regeln."],
+      ["Circuits und Tickets 2026","Offizieller Verkauf läuft über die Plattform des Kulturministeriums (tuboleto.cultura.pe); in Aguas Calientes gibt es einen Schalter mit begrenztem Kontingent für den Folgetag, darauf nicht verlassen. Für ausländische Erwachsene gilt 2026: Standardroute 152 Soles plus 11 Soles SERNANP-Gebühr, zusammen 163 Soles; Routen mit Berganhang (Machu Picchu Mountain, Huayna Picchu, Gran Caverna) 211 Soles total. Circuit 1 Panorámico führt über die oberen Terrassen mit dem Postkartenblick am Wachhaus (Guardian's House); einzelne Varianten führen weiter zum Sonnentor (Intipunku) bzw. zur Inka-Brücke. Circuit 2 Clásico umfasst das urbane Zentrum mit dem klassischen Foto. Circuit 3 (untere Route) enthält Huayna Picchu und die Gran Caverna. Am Eingang gilt Passpflicht, Name und Dokumentnummer müssen zum Ticket passen."],
+      ["Zeitbedarf und Höhe","Realistischer Zeitbedarf vor Ort: Circuit 2 rund 2,5 bis 3 Stunden inklusive Fotostopps, Mountaintop-Kombinationen einen ganzen Tag, mitunter mit doppelter Besteigung. Die Höhenlage liegt mit 2.430 Metern deutlich unter Cusco, nach einigen Tagen Akklimatisierung im Heiligen Tal meist unproblematisch, trotzdem Sonnen- und Regenschutz nicht vergessen. Praktikabel ist: frühstücken vor dem Eingang, Regenjacke einstecken, Pass mitnehmen, und innerhalb des zugewiesenen Circuits bleiben, die Route wird an Kontrollen durchgesetzt."]
+    ],
+    praktisch:["Ticket: offiziell nur tuboleto.cultura.pe; Route, Datum und Einlasszeit fest, Name wie im Reisepass.","Empfohlene Route für den ersten Besuch: Circuit 2 Clásico (urbane Zone plus Postkartenblick), Huayna Picchu nur mit Monaten Vorlauf.","Anfahrt: Zug ab Ollantaytambo (auch Urubamba oder Poroy) nach Aguas Calientes, dann Bus rund 25 Minuten oder Aufstieg zu Fuß.","Zeitfenster: realistisch rund 3 Stunden auf dem Plateau für den klassischen Circuit; Berge deutlich mehr, lange Buchungsfrist mitbringen.","Obligatorisch: Reisepass am Eingang. Kein Verkauf großer Ticketkontingente vor Ort, in der Hochsaison Wochen bis Monate vorher buchen.","Höhe: 2.430 m, klimatisch milder als Cusco; trotzdem Sonnenschutz und Regenjacke, das Wetter wechselt schnell."],
+    sources:["yapaexplorers.com: Ticket-Preise nach Circuit, Stand August 2026","enperu.org/de: Eintrittskarten 2026","andina.pe: RM 000333-2026-MC, Regeln Netz Inca-Wanderwege","tuboleto.cultura.pe: offizielle Ticket-Plattform"]
+  }
+];
+
+/* ------------------------------ ZUSTAND, DESIGN, VORLESEN ------------------------------ */
+const LS={theme:"gid.theme",progress:"gid.progress",rate:"gid.rate",voice:"gid.voice"};
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+};
+let progress=store.get(LS.progress,{});
+const themeBtn=document.getElementById("themeBtn");
+function applyTheme(){
+  const mode=store.get(LS.theme,"auto");
+  const sysDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark=mode==="dark"||(mode==="auto"&&sysDark);
+  document.documentElement.setAttribute("data-theme",dark?"dark":"light");
+  themeBtn.textContent=mode==="auto"?"Auto":(dark?"Dunkel":"Hell");
+}
+themeBtn.addEventListener("click",()=>{
+  const order=["auto","light","dark"];
+  const cur=store.get(LS.theme,"auto");
+  store.set(LS.theme,order[(order.indexOf(cur)+1)%3]);
+  applyTheme();
+});
+if(window.matchMedia){window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(store.get(LS.theme,"auto")==="auto")applyTheme();});}
+applyTheme();
+const synth=window.speechSynthesis;
+let ttsQueue=[],ttsIdx=0,ttsPaused=false,rate=store.get(LS.rate,1.0),voices=[];
+const ttsbar=document.getElementById("ttsbar");
+document.getElementById("ttsRate").value=rate;
+function loadVoices(){
+  if(!synth)return;
+  voices=synth.getVoices()||[];
+  const sel=document.getElementById("ttsVoice");
+  sel.innerHTML="";
+  const pref=["de-DE","de-AT","de-CH","es-ES","es-PE","es-MX"];
+  const sorted=[...voices].sort((a,b)=>{const ra=pref.indexOf(a.lang),rb=pref.indexOf(b.lang);return (ra<0?99:ra)-(rb<0?99:rb);});
+  for(const v of sorted){const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" ("+v.lang+")";sel.appendChild(o);}
+  const saved=store.get(LS.voice,null);
+  if(saved){for(const o of sel.options){if(o.value===saved){sel.value=saved;break;}}}
+}
+if(synth){synth.onvoiceschanged=loadVoices;loadVoices();}
+document.getElementById("ttsVoice").addEventListener("change",e=>{store.set(LS.voice,e.target.value);});
+document.getElementById("ttsRate").addEventListener("input",e=>{
+  rate=parseFloat(e.target.value);document.getElementById("ttsRateVal").textContent=rate.toFixed(1)+"x";store.set(LS.rate,rate);
+});
+function chunkText(text){
+  const parts=text.replace(/\s+/g," ").match(/[^.!?]+[.!?]+|\S.+$/g)||[text];
+  const out=[];let cur="";
+  for(const s of parts){if((cur+s).length>220){out.push(cur.trim());cur=s;}else{cur+=s;}}
+  if(cur.trim())out.push(cur.trim());
+  return out;
+}
+function speakNow(chunk){
+  if(!synth)return;
+  const u=new SpeechSynthesisUtterance(chunk);
+  u.rate=rate;u.lang="de-DE";
+  const sel=document.getElementById("ttsVoice");
+  const v=voices.find(x=>x.name===sel.value);
+  if(v){u.voice=v;u.lang=v.lang;}
+  u.onend=()=>{
+    if(ttsIdx<ttsQueue.length-1&&!ttsPaused){ttsIdx++;speakNow(ttsQueue[ttsIdx]);}
+    else if(ttsIdx>=ttsQueue.length-1&&!ttsPaused){ttsbar.classList.remove("on");if(ttsCb&&ttsCb())window.setTimeout(()=>{},10);}
+  };
+  u.onerror=()=>{ttsbar.classList.remove("on");};
+  synth.speak(u);
+}
+let ttsCb=null;
+function startTTS(text,cb){
+  if(!synth){alert("Vorlesen ist in diesem Browser nicht verfügbar.");return;}
+  synth.cancel();
+  ttsPaused=false;document.getElementById("ttsPause").textContent="Pause";
+  ttsQueue=chunkText(text);ttsIdx=0;ttsCb=cb||null;
+  ttsbar.classList.add("on");
+  speakNow(ttsQueue[0]);
+}
+document.getElementById("ttsPause").addEventListener("click",()=>{
+  if(!synth)return;
+  if(ttsPaused){ttsPaused=false;document.getElementById("ttsPause").textContent="Pause";synth.cancel();speakNow(ttsQueue[ttsIdx]);}
+  else{ttsPaused=true;synth.cancel();document.getElementById("ttsPause").textContent="Weiter";}
+});
+document.getElementById("ttsStop").addEventListener("click",()=>{if(synth)synth.cancel();ttsbar.classList.remove("on");ttsCb=null;});
+document.getElementById("ttsPrev").addEventListener("click",()=>{if(!synth||!ttsQueue.length)return;ttsIdx=Math.max(0,ttsIdx-1);synth.cancel();speakNow(ttsQueue[ttsIdx]);});
+
+/* ------------------------------ PROGRESS & VIEWS ------------------------------ */
+function getRead(site,ch){return !!(progress[site]&&progress[site][ch]);}
+function setRead(site,ch,val){if(!progress[site])progress[site]={};progress[site][ch]=val?1:false;store.set(LS.progress,progress);}
+const ALL_SITES=SITES.concat(SITES2);
+const app=document.getElementById("app");
+const findSite=id=>ALL_SITES.find(x=>x.id===id)||null;
+function chapterList(s){
+  const out=[{k:"intro",label:"Überblick"}];
+  if(s.planSvg)out.push({k:"plan",label:"Lageplan"});
+  out.push({k:"history",label:s.historyLabel||"Geschichte"});
+  if(s.stations)out.push({k:"rundgang",label:"Rundgang ("+s.stations.length+")"});
+  out.push({k:"praktisch",label:"Praktisches"});
+  return out;
+}
+function flatSeq(s){
+  const out=[];
+  for(const ch of chapterList(s)){
+    if(ch.k==="rundgang")s.stations.forEach((st,i)=>out.push({ch:"s"+i,label:"Station "+(i+1)}));
+    else out.push({ch:ch.k,label:ch.label});
+  }
+  return out;
+}
+function siteAllRead(s){
+  const list=flatSeq(s);
+  return list.length>0&&list.every(x=>getRead(s.id,x.ch));
+}
+function renderHome(){
+  let html="<h2>Privater Reiseführer: Rund um Cusco</h2>";
+  html+='<p class="muted">Acht Orte­ständig offline, mit Vor­lese­funktion pro Kapitel und Station. Ein Design, das dem Gerät folgt und sich manuell umschalten lässt. Lesestand wird lokal gespeichert.</p>';
+  for(const s of ALL_SITES){
+    html+='<a href="#/'+s.id+'" class="card" style="display:block;text-decoration:none;color:inherit">'
+      +'<div style="display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap"><h2 style="margin:0">'+s.name+'</h2><span class="muted">'+s.alt+'</span>'+(siteAllRead(s)?'<span class="readmark">✔ alles gelesen</span>':'')+'</div>'
+      +'<div class="facts">'+s.meta.map(m=>"<span>"+m+"</span>").join("")+'</div>'
+      +'<p class="muted" style="margin:.4rem 0 0">'+s.intro[0].slice(0,170)+"…</p></a>";
+  }
+  app.innerHTML=html;
+  window.scrollTo(0,0);
+}
+function renderSite(id,chRaw){
+  let ch=chRaw;
+  const s=findSite(id);
+  if(!s){renderHome();return;}
+  if(ch==="plan"&&!s.planSvg)ch=s.stations?"history":"praktisch";
+  if(ch.startsWith("s")&&!s.stations)ch="intro";
+  if(ch==="history"&&!s.history)ch="praktisch";
+  let html='<div class="sitetabs">';
+  for(const t of chapterList(s)){
+    const active=(t.k==="rundgang")?ch.startsWith("s"):ch===t.k;
+    let read=false;
+    if(t.k==="rundgang")read=s.stations.every((st,i)=>getRead(s.id,"s"+i));
+    else read=getRead(s.id,t.k);
+    const target=(t.k==="rundgang")?"s0":t.k;
+    html+='<button class="'+(active?"active":"")+'" onclick="location.hash=\'#/'+s.id+"/"+target+'\'">'+t.label+(read?'<span class="readmark">✔</span>':'')+"</button>";
+  }
+  html+="</div>";
+  html+='<h2>'+s.name+' <span class="muted" style="font-size:.85rem">'+s.alt+"</span></h2>";
+  if(ch==="intro"){
+    html+='<div class="card">'+s.intro.map(p=>"<p>"+p+"</p>").join("")+'<div class="facts">'+s.meta.map(m=>"<span>"+m+"</span>").join("")+"</div></div>";
+    const nextCh=s.planSvg?"plan":(s.stations?"history":"praktisch");
+    html+='<div class="navrow"><button class="primary" onclick="location.hash=\'#/'+s.id+'/'+nextCh+'\'">Weiter →</button><button onclick="location.hash=\'#/\'">← Übersicht</button></div>';
+  }else if(ch==="plan"){
+    html+='<div class="card">'+s.planSvg+'</div><p class="muted">'+s.planNote+"</p>";
+    html+='<div class="card"><strong>Stationen im Plan</strong><ol>'+s.planStations.map(st=>"<li><strong>"+st[0]+":</strong> "+st[1]+"</li>").join("")+"</ol></div>";
+    html+='<div class="navrow"><button class="primary" onclick="location.hash=\'#/'+s.id+(s.planSvg?'/plan':'/praktisch')+'\'">Rundgang starten →</button><button onclick="location.hash=\'#/'+s.id+'/intro\'">← Überblick</button></div>';
+  }else if(ch==="history"){
+    html+='<div class="card">'+s.history.map(h=>"<h3>"+h[0]+"</h3><p>"+h[1]+"</p>").join("")+"</div>";
+    html+='<div class="navrow"><button class="primary" onclick="location.hash=\'#/'+s.id+(s.stations?'/s0':'/praktisch')+'\'">Zum Rundgang →</button>'+(s.planSvg?'<button onclick="location.hash=\'#/'+s.id+'/plan\'">← Lageplan</button>':'')+'</div>';
+  }else if(ch==="praktisch"){
+    html+='<div class="card"><ul>'+s.praktisch.map(p=>"<li>"+p+"</li>").join("")+'</ul><details><summary>Quellen</summary><ul class="sourcebox">'+s.sources.map(x=>"<li>"+x+"</li>").join("")+"</ul></details></div>";
+    html+='<div class="navrow">'+(s.planSvg?'<button onclick="location.hash=\'#/'+s.id+'/plan\'">← Lageplan</button>':'')+'<button class="primary" onclick="location.hash=\'#/\'">Übersicht →</button></div>';
+  }else if(ch.startsWith("s")){
+    const i=parseInt(ch.slice(1));const st=s.stations[i];
+    html+='<div class="card"><div style="display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap"><span class="nr">'+(i+1)+'</span><h3 style="margin:0">'+st[0]+"</h3></div><p>"+st[1]+"</p></div>";
+    html+='<div class="navrow">'
+      +(i>0?'<button onclick="location.hash=\'#/'+s.id+"/s"+(i-1)+'\'">← Vorherige</button>':"")
+      +'<button class="primary" onclick="location.hash=\'#/'+s.id+"/s"+Math.min(s.stations.length-1,i+1)+'\'">Nächste →</button></div>';
+  }
+  const seq=flatSeq(s);const idx=seq.findIndex(x=>x.ch===ch);const nextIdx=idx+1;
+  const readNow=getRead(s.id,ch);
+  html+='<div class="navrow">'
+    +'<button id="readBtn" class="small'+(readNow?" primary":"")+'">'+(readNow?"✔ Gelesen":"Als gelesen markieren")+"</button>"
+    +'<button id="speakBtn" class="small">🔊 Vorlesen</button>'
+    +(ch.startsWith("s")?'<button id="speakTour" class="small" title="Alle Stationen ab hier vorlesen">🔊 Rundgang ab hier</button>':"")
+    +"</div>";
+  if(idx>=0&&nextIdx<seq.length){html+='<div class="navrow"><button onclick="location.hash=\'#/'+s.id+"/"+seq[nextIdx].ch+'\'">Weiter: '+seq[nextIdx].label+" →</button></div>";}
+  app.innerHTML=html;
+  document.getElementById("readBtn").onclick=()=>{setRead(s.id,ch,!readNow);renderSite(s.id,ch);};
+  const collectText=()=>{
+    if(ch==="intro")return s.intro.join(" ");
+    if(ch==="plan")return s.planStations.map(x=>x[0]+": "+x[1]).join(". ");
+    if(ch==="history")return s.history.map(h=>h[0]+". "+h[1]).join(". ");
+    if(ch==="praktisch")return s.praktisch.join(". ");
+    if(ch.startsWith("s")){const i=parseInt(ch.slice(1));return s.stations[i][0]+". "+s.stations[i][1];}
+    return "";
+  };
+  document.getElementById("speakBtn").onclick=()=>{
+    startTTS(collectText(),()=>{
+      if(!ch.startsWith("s"))return true;
+      const i=parseInt(ch.slice(1));
+      if(i<s.stations.length-1){setRead(s.id,ch,true);location.hash="#/"+s.id+"/s"+(i+1);return false;}
+      setRead(s.id,ch,true);return true;
+    });
+  };
+  const tourBtn=document.getElementById("speakTour");
+  if(tourBtn)tourBtn.onclick=()=>{
+    let i=parseInt(ch.slice(1));
+    const step=()=>{
+      if(i>=s.stations.length){ttsbar.classList.remove("on");return;}
+      const st=s.stations[i];
+      const target="#/"+s.id+"/s"+i;
+      if(location.hash!==target)location.hash=target;
+      setTimeout(()=>{startTTS(st[0]+". "+st[1],()=>{setRead(s.id,"s"+i,true);i++;return true;});},400);
+    };
+    step();
+  };
+  window.scrollTo(0,0);
+}
+function router(){
+  const h=location.hash.replace(/^#\//,"");
+  if(!h){renderHome();return;}
+  const parts=h.split("/");
+  const s=findSite(decodeURIComponent(parts[0]));
+  if(!s){renderHome();return;}
+  const ch=parts[1]?decodeURIComponent(parts[1]):"intro";
+  renderSite(s.id,ch);
+}
+document.querySelector(".brand").addEventListener("click",()=>{location.hash="#/";});
+window.addEventListener("hashchange",router);
+router();
+</script>
+</body>
+</html>
