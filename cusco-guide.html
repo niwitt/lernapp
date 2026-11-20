@@ -454,7 +454,7 @@ function renderHome(){
   let html="<h2>Privater Reiseführer: Rund um Cusco</h2>";
   html+='<p class="muted">Acht Orte­ständig offline, mit Vor­lese­funktion pro Kapitel und Station. Ein Design, das dem Gerät folgt und sich manuell umschalten lässt. Lesestand wird lokal gespeichert.</p>';
   for(const s of ALL_SITES){
-    html+='<a href="#/'+s.id+'" class="card" style="display:block;text-decoration:none;color:inherit">'
+    html+='<a href="javascript:void(0)" onclick="go(\''+s.id+'\',\'intro\')" class="card" style="display:block;text-decoration:none;color:inherit">'
       +'<div style="display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap"><h2 style="margin:0">'+s.name+'</h2><span class="muted">'+s.alt+'</span>'+(siteAllRead(s)?'<span class="readmark">✔ alles gelesen</span>':'')+'</div>'
       +'<div class="facts">'+s.meta.map(m=>"<span>"+m+"</span>").join("")+'</div>'
       +'<p class="muted" style="margin:.4rem 0 0">'+s.intro[0].slice(0,170)+"…</p></a>";
@@ -476,30 +476,30 @@ function renderSite(id,chRaw){
     if(t.k==="rundgang")read=s.stations.every((st,i)=>getRead(s.id,"s"+i));
     else read=getRead(s.id,t.k);
     const target=(t.k==="rundgang")?"s0":t.k;
-    html+='<button class="'+(active?"active":"")+'" onclick="location.hash=\'#/'+s.id+"/"+target+'\'">'+t.label+(read?'<span class="readmark">✔</span>':'')+"</button>";
+    html+='<button class="'+(active?"active":"")+'" onclick="go(\''+s.id+'\',\''+target+'\')">'+t.label+(read?'<span class="readmark">✔</span>':'')+"</button>";
   }
   html+="</div>";
   html+='<h2>'+s.name+' <span class="muted" style="font-size:.85rem">'+s.alt+"</span></h2>";
   if(ch==="intro"){
     html+='<div class="card">'+s.intro.map(p=>"<p>"+p+"</p>").join("")+'<div class="facts">'+s.meta.map(m=>"<span>"+m+"</span>").join("")+"</div></div>";
     const nextCh=s.planSvg?"plan":(s.stations?"history":"praktisch");
-    html+='<div class="navrow"><button class="primary" onclick="location.hash=\'#/'+s.id+'/'+nextCh+'\'">Weiter →</button><button onclick="location.hash=\'#/\'">← Übersicht</button></div>';
+    html+='<div class="navrow"><button class="primary" onclick="go(\''+s.id+'\',\''+nextCh+'\')">Weiter →</button><button onclick="goHome()">← Übersicht</button></div>';
   }else if(ch==="plan"){
     html+='<div class="card">'+s.planSvg+'</div><p class="muted">'+s.planNote+"</p>";
     html+='<div class="card"><strong>Stationen im Plan</strong><ol>'+s.planStations.map(st=>"<li><strong>"+st[0]+":</strong> "+st[1]+"</li>").join("")+"</ol></div>";
-    html+='<div class="navrow"><button class="primary" onclick="location.hash=\'#/'+s.id+(s.planSvg?'/plan':'/praktisch')+'\'">Rundgang starten →</button><button onclick="location.hash=\'#/'+s.id+'/intro\'">← Überblick</button></div>';
+    html+='<div class="navrow"><button class="primary" onclick="go(\''+s.id+'\',\''+(s.planSvg?'plan':'praktisch')+'\')">Rundgang starten →</button><button onclick="go(\''+s.id+'\',\'intro\')">← Überblick</button></div>';
   }else if(ch==="history"){
     html+='<div class="card">'+s.history.map(h=>"<h3>"+h[0]+"</h3><p>"+h[1]+"</p>").join("")+"</div>";
-    html+='<div class="navrow"><button class="primary" onclick="location.hash=\'#/'+s.id+(s.stations?'/s0':'/praktisch')+'\'">Zum Rundgang →</button>'+(s.planSvg?'<button onclick="location.hash=\'#/'+s.id+'/plan\'">← Lageplan</button>':'')+'</div>';
+    html+='<div class="navrow"><button class="primary" onclick="go(\''+s.id+'\',\''+(s.stations?'s0':'praktisch')+'\')">Zum Rundgang →</button>'+(s.planSvg?'<button onclick="go(\''+s.id+'\',\'plan\')">← Lageplan</button>':'')+'</div>';
   }else if(ch==="praktisch"){
     html+='<div class="card"><ul>'+s.praktisch.map(p=>"<li>"+p+"</li>").join("")+'</ul><details><summary>Quellen</summary><ul class="sourcebox">'+s.sources.map(x=>"<li>"+x+"</li>").join("")+"</ul></details></div>";
-    html+='<div class="navrow">'+(s.planSvg?'<button onclick="location.hash=\'#/'+s.id+'/plan\'">← Lageplan</button>':'')+'<button class="primary" onclick="location.hash=\'#/\'">Übersicht →</button></div>';
+    html+='<div class="navrow">'+(s.planSvg?'<button onclick="go(\''+s.id+'\',\'plan\')">← Lageplan</button>':'')+'<button class="primary" onclick="goHome()">Übersicht →</button></div>';
   }else if(ch.startsWith("s")){
     const i=parseInt(ch.slice(1));const st=s.stations[i];
     html+='<div class="card"><div style="display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap"><span class="nr">'+(i+1)+'</span><h3 style="margin:0">'+st[0]+"</h3></div><p>"+st[1]+"</p></div>";
     html+='<div class="navrow">'
-      +(i>0?'<button onclick="location.hash=\'#/'+s.id+"/s"+(i-1)+'\'">← Vorherige</button>':"")
-      +'<button class="primary" onclick="location.hash=\'#/'+s.id+"/s"+Math.min(s.stations.length-1,i+1)+'\'">Nächste →</button></div>';
+      +(i>0?'<button onclick="go(\''+s.id+'\',\'s\'+(i-1))">← Vorherige</button>':"")
+      +'<button class="primary" onclick="go(\''+s.id+'\',\'s\'+Math.min(s.stations.length-1,i+1))">Nächste →</button></div>';
   }
   const seq=flatSeq(s);const idx=seq.findIndex(x=>x.ch===ch);const nextIdx=idx+1;
   const readNow=getRead(s.id,ch);
@@ -508,7 +508,7 @@ function renderSite(id,chRaw){
     +'<button id="speakBtn" class="small">🔊 Vorlesen</button>'
     +(ch.startsWith("s")?'<button id="speakTour" class="small" title="Alle Stationen ab hier vorlesen">🔊 Rundgang ab hier</button>':"")
     +"</div>";
-  if(idx>=0&&nextIdx<seq.length){html+='<div class="navrow"><button onclick="location.hash=\'#/'+s.id+"/"+seq[nextIdx].ch+'\'">Weiter: '+seq[nextIdx].label+" →</button></div>";}
+  if(idx>=0&&nextIdx<seq.length){html+='<div class="navrow"><button onclick="go(\''+s.id+'\',\''+seq[nextIdx].ch+'\')">Weiter: '+seq[nextIdx].label+" →</button></div>";}
   app.innerHTML=html;
   document.getElementById("readBtn").onclick=()=>{setRead(s.id,ch,!readNow);renderSite(s.id,ch);};
   const collectText=()=>{
@@ -523,7 +523,7 @@ function renderSite(id,chRaw){
     startTTS(collectText(),()=>{
       if(!ch.startsWith("s"))return true;
       const i=parseInt(ch.slice(1));
-      if(i<s.stations.length-1){setRead(s.id,ch,true);location.hash="#/"+s.id+"/s"+(i+1);return false;}
+      if(i<s.stations.length-1){setRead(s.id,ch,true);go(s.id,"s"+(i+1));return false;}
       setRead(s.id,ch,true);return true;
     });
   };
@@ -533,26 +533,27 @@ function renderSite(id,chRaw){
     const step=()=>{
       if(i>=s.stations.length){ttsbar.classList.remove("on");return;}
       const st=s.stations[i];
-      const target="#/"+s.id+"/s"+i;
-      if(location.hash!==target)location.hash=target;
+      renderSite(s.id,"s"+i);
       setTimeout(()=>{startTTS(st[0]+". "+st[1],()=>{setRead(s.id,"s"+i,true);i++;return true;});},400);
     };
     step();
   };
   window.scrollTo(0,0);
 }
+let curSite=null,curCh="intro";
+function goHome(){curSite=null;curCh="intro";renderHome();}
+function go(id,ch){curSite=id;curCh=ch;renderSite(id,ch);}
 function router(){
   const h=location.hash.replace(/^#\//,"");
-  if(!h){renderHome();return;}
+  if(!h){goHome();return;}
   const parts=h.split("/");
   const s=findSite(decodeURIComponent(parts[0]));
-  if(!s){renderHome();return;}
-  const ch=parts[1]?decodeURIComponent(parts[1]):"intro";
-  renderSite(s.id,ch);
+  if(!s){goHome();return;}
+  renderSite(s.id,parts[1]?decodeURIComponent(parts[1]):"intro");
 }
-document.querySelector(".brand").addEventListener("click",()=>{location.hash="#/";});
+document.querySelector(".brand").addEventListener("click",goHome);
 window.addEventListener("hashchange",router);
-router();
+try{if(location.hash&&location.hash.indexOf("#/")===0)router();else goHome();}catch(e){goHome();}
 </script>
 </body>
 </html>
